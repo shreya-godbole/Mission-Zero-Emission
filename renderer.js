@@ -1,8 +1,8 @@
 const buttonCreated = document.getElementById('upload');
-const outputDiv = document.getElementById('output');
+const outputDiv = document.getElementById('result'); 
 
 buttonCreated.addEventListener('click', function(event){
-    //sends to main process
+    // Sends to main process
     window.ipc.send('open-file-dialog');
 });
 
@@ -10,19 +10,13 @@ window.ipc.on('send-selected-file', function(event, path){
     outputDiv.textContent = `Selected File: ${path}\n\nRunning command...\n`;
 });
 
-window.ipc.on('java-command-output', function (event, data) {
-    // Display messages based on their type
-    if (data.type === 'info') {
-        outputDiv.textContent += 'INFO: ' + data.message + '\n';
-    } else if (data.type === 'error') {
-        outputDiv.textContent += 'ERROR: ' + data.message + '\n';
-    }
-});
-
-window.ipc.on('java-command-finished', function (event, result) {
+window.ipc.on('java-command-result', function (event, result) {
     if (result.success) {
-        outputDiv.textContent = result.output; // Display only the joules line
+        // Display only the specific joules line output
+        outputDiv.innerText = `Energy Consumption: ${result.output}`; // Use outputDiv here
     } else {
-        outputDiv.textContent = 'Java command failed to execute.';
+        // Display error if the command failed
+        outputDiv.innerText = `Error: ${result.output}`; // Use outputDiv here
     }
+    
 });

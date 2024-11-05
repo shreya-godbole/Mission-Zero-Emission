@@ -1,11 +1,14 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <title>Electron JS</title>
-  </head>
-  <body>
-    <button id = 'upload'>Upload File</button>
-    <div id="output" style="margin-top: 20px; white-space: pre-wrap;"></div>    
-    <script src="./renderer.js"></script>
+<head>
+    <title>Electron JS Energy Measurement</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <h1>Energy Measurement App</h1>
+    <button id="upload">Upload File</button>
+    <div id="file-path">Select Java File To Measure Energy Consumption</div>
+    <div id="result"></div>
+    <script src="renderer.js"></script>
 </body>
 </html>

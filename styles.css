@@ -1,0 +1,34 @@
+body {
+    font-family: Arial, sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+    background-color: #f4f6f9;
+    color: #333;
+}
+
+h1 {
+    color: #4A90E2;
+}
+
+#upload {
+    padding: 10px 20px;
+    font-size: 16px;
+    cursor: pointer;
+    border: none;
+    background-color: #4A90E2;
+    color: white;
+    border-radius: 5px;
+    margin-top: 20px;
+    transition: background-color 0.3s ease;
+}
+
+#upload:hover {
+    background-color: #357ABD;
+}
+
+#file-path, #result {
+    margin-top: 20px;
+    font-weight: bold;
+}
