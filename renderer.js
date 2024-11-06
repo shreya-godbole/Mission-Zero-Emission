@@ -10,13 +10,41 @@ window.ipc.on('send-selected-file', function(event, path){
     outputDiv.textContent = `Selected File: ${path}\n\nRunning command...\n`;
 });
 
-window.ipc.on('java-command-result', function (event, result) {
-    if (result.success) {
-        // Display only the specific joules line output
-        outputDiv.innerText = `Energy Consumption: ${result.output}`; // Use outputDiv here
+window.ipc.on('java-command-result', function (event, data) {
+    if (data.success) {
+        document.getElementById('result').innerText = `Energy Consumption: ${data.output}`;
     } else {
-        // Display error if the command failed
-        outputDiv.innerText = `Error: ${result.output}`; // Use outputDiv here
+        document.getElementById('result').innerText = `Error: ${data.output}`;
     }
-    
 });
+
+// window.ipc.on('csv-data', function (event, { methodNames, energyValues }) {
+//     const ctx = document.getElementById('energyChart').getContext('2d');
+//     new Chart(ctx, {
+//         type: 'bar',
+//         data: {
+//             labels: methodNames,
+//             datasets: [{
+//                 label: 'Energy Consumption (Joules)',
+//                 data: energyValues,
+//                 backgroundColor: 'rgba(75, 192, 192, 0.6)',
+//                 borderColor: 'rgba(75, 192, 192, 1)',
+//                 borderWidth: 1
+//             }]
+//         },
+//         options: {
+//             scales: {
+//                 y: {
+//                     beginAtZero: true
+//                 }
+//             },
+//             responsive: true,
+//             plugins: {
+//                 legend: {
+//                     display: true
+//                 }
+//             }
+//         }
+//     });
+// });
+    

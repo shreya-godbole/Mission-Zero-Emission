@@ -38,6 +38,8 @@ app.on('ready', function() {
     
             let joulesLine = '';
             let outputBuffer = '';
+            let fullID = '';
+            let firstFiveDigits = '';
     
             // Capture stdout
             javaProcess.stdout.on('data', (data) => {
@@ -48,6 +50,12 @@ app.on('ready', function() {
                 const match = output.match(/Program consumed \d+(\.\d+)? joules/);
                 if (match) {
                     joulesLine = match[0];
+                }
+
+                const idMatch = output.match(/Results will be stored in joularjx-result\/(\d{5,}-\d+)/);
+                if (idMatch && idMatch[1]) {
+                    fullID = idMatch[1]; // Store the full ID
+                    firstFiveDigits = idMatch[1].split('-')[0]; // Store only the first 5 digits
                 }
             });
     
@@ -61,12 +69,24 @@ app.on('ready', function() {
                 if (match) {
                     joulesLine = match[0];
                 }
+
+                const idMatch = errorOutput.match(/Results will be stored in joularjx-result\/(\d{5,}-\d+)/);
+                if (idMatch && idMatch[1]) {
+                    fullID = idMatch[1]; // Store the full ID
+                    firstFiveDigits = idMatch[1].split('-')[0]; // Store only the first 5 digits
+                    console.log('Extracted Full ID:', fullID); // Debugging output
+                    console.log('First 5 Digits of ID:', firstFiveDigits); // Debugging output
+                }
             });
     
             javaProcess.on('close', (code) => {
                 console.log(`Java Process Exit Code: ${code}`);
                 if (code === 0 && joulesLine) {
-                    event.sender.send('java-command-result', { success: true, output: joulesLine });
+                    event.sender.send('java-command-result', { success: true, 
+                        output: joulesLine,
+                        id: fullID,
+                        shortId: firstFiveDigits
+                     });
                 } else {
                     const fullOutput = `Full Output:\n${outputBuffer || 'No output captured'}`;
                     event.sender.send('java-command-result', { success: false, output: fullOutput });
