@@ -1,7 +1,19 @@
 const fs = require('fs');
 const path = require('path');
 const { spawn } = require('child_process');
+const Database = require('better-sqlite3');
 const { app, BrowserWindow, ipcMain, dialog } = require('electron');
+
+const db = new Database('energy_measurement.db');
+
+// Create the table if it doesn't exist
+db.exec(`
+    CREATE TABLE IF NOT EXISTS measurements (
+        id TEXT PRIMARY KEY,
+        joules TEXT
+    )
+`);
+
 
 app.on('ready', function() {
     let MainWindow = new BrowserWindow({
@@ -82,6 +94,17 @@ app.on('ready', function() {
             javaProcess.on('close', (code) => {
                 console.log(`Java Process Exit Code: ${code}`);
                 if (code === 0 && joulesLine) {
+                    try {
+                        // Save to SQLite using Better-SQLite3
+                        const stmt = db.prepare('INSERT INTO measurements (id, joules) VALUES (?, ?)');
+                        stmt.run(fullID, joulesLine);
+
+                        console.log('Data successfully saved to database');
+                        event.sender.send('java-command-result', { success: true, output: joulesLine });
+                    } catch (err) {
+                        console.error('Error inserting into database:', err.message);
+                        event.sender.send('java-command-result', { success: false, output: "Failed to save data to database." });
+                    }
                     event.sender.send('java-command-result', { success: true, 
                         output: joulesLine,
                         id: fullID,
