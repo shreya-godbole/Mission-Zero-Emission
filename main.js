@@ -42,12 +42,23 @@ app.on('ready', function() {
             const selectedFilePath = filePaths[0];
             event.sender.send('send-selected-file', selectedFilePath);
     
-            const joularjxTargetPath = 'C:\\joularjx\\target';
-            const javaProcess = spawn('java', [
-                `-javaagent:${path.join(joularjxTargetPath, 'joularjx-3.0.0.jar')}`,
-                selectedFilePath
-            ], { cwd: joularjxTargetPath });
-    
+            const javaClassName = path.basename(selectedFilePath, '.java'); // Extracts class name
+            const resultsDir = path.join(__dirname, 'results', javaClassName); // Create a unique results folder for the class
+
+            // Create the directory if it doesn't exist
+            if (!fs.existsSync(resultsDir)) {
+                fs.mkdirSync(resultsDir, { recursive: true });
+            }
+
+            //const joularjxTargetPath = path.join(process.env.HOME, 'joularjx', 'target');
+            //const joularjxJarPath = path.join(joularjxTargetPath, 'joularjx-3.0.0.jar');
+
+            const javaProcess = spawn('/usr/lib/jvm/java-17-openjdk-amd64/bin/java', [
+                `-javaagent:${joularjxJarPath}`,
+                selectedFilePath ,
+                javaClassName
+            ], { cwd: resultsDir });
+
             let joulesLine = '';
             let outputBuffer = '';
             let fullID = '';
@@ -90,6 +101,18 @@ app.on('ready', function() {
                     console.log('First 5 Digits of ID:', firstFiveDigits); // Debugging output
                 }
             });
+
+            
+            // To few error/info on console
+            // javaProcess.stderr.on('data', (data) => {
+            //     const output = data.toString();
+            //     if (output.includes('[INFO]')) {
+            //         console.log(output);
+            //     } else {
+            //         console.error('Error:', output);
+            //     }
+            // });
+            
     
             javaProcess.on('close', (code) => {
                 console.log(`Java Process Exit Code: ${code}`);
