@@ -14,7 +14,6 @@ db.exec(`
     )
 `);
 
-
 app.on('ready', function() {
     let MainWindow = new BrowserWindow({
         resizable: true,
@@ -22,123 +21,131 @@ app.on('ready', function() {
         width: 800,
         webPreferences: {
             contextIsolation: false,
-            enableRemoteModule: true,
             preload: path.join(__dirname, 'preload.js')
         }
     });
 
     MainWindow.loadURL('file:' + __dirname + '/index.html');
 
-    MainWindow.on('closed', function() {
-        MainWindow = null;
-    });
+    let InteractiveWindow = null;
 
     ipcMain.on('open-file-dialog', async function(event) {
         const { canceled, filePaths } = await dialog.showOpenDialog({
             properties: ['openFile']
         });
-    
+
         if (!canceled && filePaths.length > 0) {
             const selectedFilePath = filePaths[0];
-            event.sender.send('send-selected-file', selectedFilePath);
-    
-            const javaClassName = path.basename(selectedFilePath, '.java'); // Extracts class name
-            const resultsDir = path.join(__dirname, 'results', javaClassName); // Create a unique results folder for the class
+            const fileExtension = path.extname(selectedFilePath).toLowerCase();
 
-            // Create the directory if it doesn't exist
-            if (!fs.existsSync(resultsDir)) {
-                fs.mkdirSync(resultsDir, { recursive: true });
+            // const javaClassName = path.basename(selectedFilePath, '.java'); // Extracts class name
+            // const resultsDir = path.join(__dirname, 'results', javaClassName); // Create a unique results folder for the class
+            // // Create the directory if it doesn't exist
+            // if (!fs.existsSync(resultsDir)) {
+            //     fs.mkdirSync(resultsDir, { recursive: true });
+            // }
+             //const joularjxTargetPath = path.join(process.env.HOME, 'joularjx', 'target');
+            //const joularjxJarPath = path.join(joularjxTargetPath, 'joularjx-3.0.0.jar');
+            // const javaProcess = spawn('/usr/lib/jvm/java-17-openjdk-amd64/bin/java', [
+            //     `-javaagent:${joularjxJarPath}`,
+            //     selectedFilePath ,
+            //     javaClassName
+            // ], { cwd: resultsDir });
+
+            event.sender.send('send-selected-file', selectedFilePath);
+
+            const joularjxTargetPath = 'C:\\joularjx\\target';
+            const agentPath = path.join(joularjxTargetPath, 'joularjx-3.0.0.jar');
+            let javaArgs = [];
+
+            if (fileExtension === '.jar') {
+                javaArgs = ['--enable-preview', `-javaagent:${agentPath}`, '-jar', selectedFilePath];
+            } else {
+                event.sender.send('java-command-result', {
+                    success: false,
+                    output: "Selected file must be a .jar file."
+                });
+                return;
             }
 
-            //const joularjxTargetPath = path.join(process.env.HOME, 'joularjx', 'target');
-            //const joularjxJarPath = path.join(joularjxTargetPath, 'joularjx-3.0.0.jar');
-
-            const javaProcess = spawn('/usr/lib/jvm/java-17-openjdk-amd64/bin/java', [
-                `-javaagent:${joularjxJarPath}`,
-                selectedFilePath ,
-                javaClassName
-            ], { cwd: resultsDir });
-
+            const javaProcess = spawn('java', javaArgs, { cwd: joularjxTargetPath });
             let joulesLine = '';
             let outputBuffer = '';
-            let fullID = '';
-            let firstFiveDigits = '';
-    
-            // Capture stdout
+
+            if (!InteractiveWindow) {
+                InteractiveWindow = new BrowserWindow({
+                    width: 500,
+                    height: 300,
+                    webPreferences: {
+                        contextIsolation: false,
+                        preload: path.join(__dirname, 'preload.js')
+                    }
+                });
+
+                InteractiveWindow.loadURL('file://' + __dirname + '/interactive.html');
+                InteractiveWindow.on('closed', () => (InteractiveWindow = null));
+            }
+
             javaProcess.stdout.on('data', (data) => {
                 const output = data.toString();
                 outputBuffer += output;
-    
-                // Use regex to find only the "Program consumed X joules" part
+                MainWindow.webContents.send('java-output', output);
+                if (InteractiveWindow) {
+                    InteractiveWindow.webContents.send('java-output', output);
+                }
+
                 const match = output.match(/Program consumed \d+(\.\d+)? joules/);
                 if (match) {
                     joulesLine = match[0];
                 }
-
                 const idMatch = output.match(/Results will be stored in joularjx-result\/(\d{5,}-\d+)/);
                 if (idMatch && idMatch[1]) {
                     fullID = idMatch[1]; // Store the full ID
                     firstFiveDigits = idMatch[1].split('-')[0]; // Store only the first 5 digits
                 }
             });
-    
-            // Capture stderr
+
             javaProcess.stderr.on('data', (data) => {
                 const errorOutput = data.toString();
                 outputBuffer += errorOutput;
-    
-                // Use regex to find only the "Program consumed X joules" part
                 const match = errorOutput.match(/Program consumed \d+(\.\d+)? joules/);
                 if (match) {
                     joulesLine = match[0];
                 }
-
                 const idMatch = errorOutput.match(/Results will be stored in joularjx-result\/(\d{5,}-\d+)/);
                 if (idMatch && idMatch[1]) {
                     fullID = idMatch[1]; // Store the full ID
                     firstFiveDigits = idMatch[1].split('-')[0]; // Store only the first 5 digits
                     console.log('Extracted Full ID:', fullID); // Debugging output
-                    console.log('First 5 Digits of ID:', firstFiveDigits); // Debugging output
+                    console.log('First 5 Digits of ID:', firstFiveDigits); 
+                }
+
+                MainWindow.webContents.send('java-output', errorOutput);
+                if (InteractiveWindow) {
+                    InteractiveWindow.webContents.send('java-output', errorOutput);
                 }
             });
 
-            
-            // To few error/info on console
-            // javaProcess.stderr.on('data', (data) => {
-            //     const output = data.toString();
-            //     if (output.includes('[INFO]')) {
-            //         console.log(output);
-            //     } else {
-            //         console.error('Error:', output);
-            //     }
-            // });
-            
-    
+            ipcMain.on('send-user-input', (event, userInput) => {
+                if (javaProcess.stdin.writable) {
+                    javaProcess.stdin.write(`${userInput}\n`);
+                }
+            });
+
             javaProcess.on('close', (code) => {
-                console.log(`Java Process Exit Code: ${code}`);
                 if (code === 0 && joulesLine) {
                     try {
-                        // Save to SQLite using Better-SQLite3
                         const stmt = db.prepare('INSERT INTO measurements (id, joules) VALUES (?, ?)');
                         stmt.run(fullID, joulesLine);
-
                         console.log('Data successfully saved to database');
-                        event.sender.send('java-command-result', { success: true, output: joulesLine });
+                        MainWindow.webContents.send('java-command-result', { success: true, output: joulesLine });
                     } catch (err) {
-                        console.error('Error inserting into database:', err.message);
-                        event.sender.send('java-command-result', { success: false, output: "Failed to save data to database." });
+                        MainWindow.webContents.send('java-command-result', { success: false, output: "Failed to save data to database." });
                     }
-                    event.sender.send('java-command-result', { success: true, 
-                        output: joulesLine,
-                        id: fullID,
-                        shortId: firstFiveDigits
-                     });
                 } else {
-                    const fullOutput = `Full Output:\n${outputBuffer || 'No output captured'}`;
-                    event.sender.send('java-command-result', { success: false, output: fullOutput });
+                    MainWindow.webContents.send('java-command-result', { success: false, output: outputBuffer || 'No output captured' });
                 }
             });
         }
-    });  
-      
+    });
 });
