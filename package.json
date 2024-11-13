@@ -10,6 +10,10 @@
   "author": "Shreya",
   "license": "ISC",
   "devDependencies": {
-    "electron": "^33.0.2"
+    "electron": "^33.2.0",
+    "electron-rebuild": "^3.2.9"
+  },
+  "dependencies": {
+    "better-sqlite3": "^11.5.0"
   }
 }
