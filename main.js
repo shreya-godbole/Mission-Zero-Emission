@@ -1,10 +1,15 @@
+const ini = require('ini'); 
 const fs = require('fs');
 const path = require('path');
 const { spawn } = require('child_process');
 const Database = require('better-sqlite3');
 const { app, BrowserWindow, ipcMain, dialog } = require('electron');
 
-const db = new Database('energy_measurement.db');
+// Load the configuration from the config.ini file
+const config = ini.parse(fs.readFileSync(path.join(__dirname, 'config.ini'), 'utf-8'));
+
+// Initialize the database using the path from the config file
+const db = new Database(config.database.db_path);
 
 // Create the table if it doesn't exist
 db.exec(`
@@ -44,8 +49,8 @@ app.on('ready', function() {
             // if (!fs.existsSync(resultsDir)) {
             //     fs.mkdirSync(resultsDir, { recursive: true });
             // }
-             //const joularjxTargetPath = path.join(process.env.HOME, 'joularjx', 'target');
-            //const joularjxJarPath = path.join(joularjxTargetPath, 'joularjx-3.0.0.jar');
+            //  const joularjxTargetPath = path.join(process.env.HOME, 'joularjx', 'target');
+            // const joularjxJarPath = path.join(joularjxTargetPath, 'joularjx-3.0.0.jar');
             // const javaProcess = spawn('/usr/lib/jvm/java-17-openjdk-amd64/bin/java', [
             //     `-javaagent:${joularjxJarPath}`,
             //     selectedFilePath ,
@@ -53,24 +58,32 @@ app.on('ready', function() {
             // ], { cwd: resultsDir });
 
             event.sender.send('send-selected-file', selectedFilePath);
+    
+            const javaClassName = path.basename(selectedFilePath, '.java'); // Extracts class name
+            const resultsDir = path.join(__dirname, config.settings.results_dir, javaClassName); // Create a unique results folder for the class
 
-            const joularjxTargetPath = 'C:\\joularjx\\target';
-            const agentPath = path.join(joularjxTargetPath, 'joularjx-3.0.0.jar');
+            // Create the directory if it doesn't exist
+            if (!fs.existsSync(resultsDir)) {
+                fs.mkdirSync(resultsDir, { recursive: true });
+            }
+
+            const agentPath = path.join(config.settings.joularjx_path);
             let javaArgs = [];
 
             if (fileExtension === '.jar') {
-                javaArgs = ['--enable-preview', `-javaagent:${agentPath}`, '-jar', selectedFilePath];
+                javaArgs = [`-javaagent:${agentPath}`,'-jar',selectedFilePath];
             } else if(fileExtension === '.java'){
-                javaArgs = [`-javaagent:${agentPath}`, selectedFilePath];
+                javaArgs = [ `-javaagent:${agentPath}`,selectedFilePath, javaClassName];
             }else {
                 event.sender.send('java-command-result', {
                     success: false,
+                    output: "Selected file must be a .jar file.",
                     output: "Selected file must be a .jar or a .java file."
                 });
                 return;
             }
 
-            const javaProcess = spawn('java', javaArgs, { cwd: joularjxTargetPath });
+            const javaProcess = spawn(config.settings.java_path, javaArgs, { cwd: resultsDir });
             let joulesLine = '';
             let outputBuffer = '';
 
@@ -133,7 +146,7 @@ app.on('ready', function() {
                     javaProcess.stdin.write(`${userInput}\n`);
                 }
             });
-
+    
             javaProcess.on('close', (code) => {
                 if (code === 0 && joulesLine) {
                     try {
