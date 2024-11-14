@@ -60,10 +60,12 @@ app.on('ready', function() {
 
             if (fileExtension === '.jar') {
                 javaArgs = ['--enable-preview', `-javaagent:${agentPath}`, '-jar', selectedFilePath];
-            } else {
+            } else if(fileExtension === '.java'){
+                javaArgs = [`-javaagent:${agentPath}`, selectedFilePath];
+            }else {
                 event.sender.send('java-command-result', {
                     success: false,
-                    output: "Selected file must be a .jar file."
+                    output: "Selected file must be a .jar or a .java file."
                 });
                 return;
             }
