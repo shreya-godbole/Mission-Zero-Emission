@@ -1,3 +1,8 @@
+// Define the navigateTo function
+function navigateTo(page) {
+    window.location.href = page;
+}
+
 const buttonCreated = document.getElementById('upload');
 const outputDiv = document.getElementById('result');
 
