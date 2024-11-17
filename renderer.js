@@ -1,23 +1,26 @@
-// Define the navigateTo function
-function navigateTo(page) {
-    window.location.href = page;
-}
-
 const buttonCreated = document.getElementById('upload');
-const outputDiv = document.getElementById('result');
+const joulesOutputDiv = document.getElementById('result');
+const cfOutputDiv = document.getElementById('cfResult');
 
 buttonCreated.addEventListener('click', function(event) {
     window.ipc.send('open-file-dialog');
 });
 
 window.ipc.on('send-selected-file', function(event, path) {
-    outputDiv.textContent = `Selected File: ${path}\n\nRunning command...\n`;
+    joulesOutputDiv.textContent = `Selected File: ${path}\n\nRunning command...\n`;
 });
 
 window.ipc.on('java-command-result', function(event, data) {
     if (data.success) {
-        outputDiv.textContent = `Energy Consumption: ${data.output}`;
+        joulesOutputDiv.textContent = `Energy Consumption: ${data.output}`;
     } else {
-        outputDiv.textContent = `Error: ${data.output}`;
+        joulesOutputDiv.textContent = `Error: ${data.output}`;
+    }
+});
+window.ipc.on('cf-calculation-result', function(event, data) {
+    if (data.success) {
+        cfOutputDiv.textContent = `Carbon Footprint: ${data.output}`;
+    } else {
+        cfOutputDiv.textContent = `Error: ${data.output}`;
     }
 });

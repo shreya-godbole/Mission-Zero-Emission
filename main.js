@@ -1,9 +1,12 @@
 const ini = require('ini');
 const fs = require('fs');
+const csv = require('csv-parser');
 const path = require('path');
 const { spawn } = require('child_process');
 const Database = require('better-sqlite3');
+const getCarbonIntensity = require('./carbonIntensity');
 const { app, BrowserWindow, ipcMain, dialog } = require('electron');
+const getCarbonFootprint = require('./carbonFootprint');
 
 // Load the configuration from the config.ini file
 const config = ini.parse(fs.readFileSync(path.join(__dirname, 'config.ini'), 'utf-8'));
@@ -87,9 +90,10 @@ app.on('ready', function() {
             const javaProcess = spawn('java', javaArgs, { cwd: joularjxTargetPath });
             let joulesLine = '';
             let outputBuffer = '';
-            let fullID;
-            let firstFiveDigits;
+            let fullID = '';
             let dateMatch;
+            let joulesValue;
+            let carbonFootprintOutput;
 
             if (!InteractiveWindow) {
                 InteractiveWindow = new BrowserWindow({
@@ -113,34 +117,29 @@ app.on('ready', function() {
                     InteractiveWindow.webContents.send('java-output', output);
                 }
 
-                const match = output.match(/Program consumed \d+(\.\d+)? joules/);
+                const match = output.match(/Program consumed ([0-9]*\.?[0-9]+) joules/);
                 if (match) {
                     joulesLine = match[0];
-                }
-                const idMatch = output.match(/Results will be stored in joularjx-result\/(\d{5,}-\d+)/);
-                if (idMatch && idMatch[1]) {
-                    fullID = idMatch[1]; // Store the full ID
-                    firstFiveDigits = idMatch[1].split('-')[0]; // Store only the first 5 digits
+                    joulesValue = parseFloat(match[1]);
                 }
             });
 
             javaProcess.stderr.on('data', (data) => {
                 const errorOutput = data.toString();
                 outputBuffer += errorOutput;
-                const match = errorOutput.match(/Program consumed \d+(\.\d+)? joules/);
+                const match = errorOutput.match(/Program consumed ([0-9]*\.?[0-9]+) joules/);
                 if (match) {
-                    joulesLine = match[0];
+                    joulesLine = match[0]; 
+                    joulesValue = parseFloat(match[1]); 
                 }
-                const idMatch = errorOutput.match(/Results will be stored in joularjx-result\/(\d{5,}-\d+)/);
                 dateMatch = errorOutput.match(/\d{2}\/\d{2}\/\d{4} /); //\d{2}:\d{2}:\d{2}\.\d{3}/);
                 if (dateMatch) {
                     dateLine = dateMatch[0]; // Capture the date
                 }
+                const idMatch = errorOutput.match(/Results will be stored in joularjx-result\/(\d{5,}-\d+)/);
                 if (idMatch && idMatch[1]) {
                     fullID = idMatch[1]; // Store the full ID
-                    firstFiveDigits = idMatch[1].split('-')[0]; // Store only the first 5 digits
-                    console.log('Extracted Full ID:', fullID); // Debugging output
-                    console.log('First 5 Digits of ID:', firstFiveDigits); 
+                    console.log('Extracted Full ID:', fullID); 
                 }
 
                 MainWindow.webContents.send('java-output', errorOutput);
@@ -150,13 +149,27 @@ app.on('ready', function() {
             });
 
             ipcMain.on('send-user-input', (event, userInput) => {
-                if (javaProcess.stdin.writable) {
+                if (javaProcess.stdin.writable) { 
                     javaProcess.stdin.write(`${userInput}\n`);
                 }
             });
 
             javaProcess.on('close', (code) => {
                 if (code === 0 && joulesLine && fullID) { // Check if both variables are set
+                    getCarbonIntensity('IN')
+                        .then(carbonIntensity => {
+                            // Use carbonIntensity value in your logic
+                            console.log(`Carbon Intensity: ${carbonIntensity}`);
+                            return getCarbonFootprint(carbonIntensity, joulesValue);
+                        })
+                        .then(carbonFootprint => {
+                            // Use carbonFootprint value in your logic
+                            carbonFootprintOutput = carbonFootprint;
+                            console.log(`Carbon Footprint: ${carbonFootprint} grams`);
+                        })
+                        .catch(error => {
+                            console.error('Error:', error);
+                        });
                     try {
                         // Debugging output to check values before insertion
                         console.log('Inserting into database:');
@@ -165,12 +178,14 @@ app.on('ready', function() {
                         console.log('Joules Line:', joulesLine);
             
                         const stmt = db.prepare('INSERT INTO measurements_data (id, date, file, joules) VALUES (?, ?, ?, ?)');
-                        stmt.run(fullID, dateMatch, selectedFilePath, joulesLine);
+                        stmt.run(fullID, dateMatch, selectedFilePath, joulesValue);
                         console.log('Data successfully saved to database');
                         MainWindow.webContents.send('java-command-result', { success: true, output: joulesLine });
+                        MainWindow.webContents.send('cf-calculation-result', {success: true, output: carbonFootprintOutput });
                     } catch (err) {
                         console.error('Error while inserting into database:', err.message); // Log the error message
                         MainWindow.webContents.send('java-command-result', { success: false, output: "Failed to save data to database." });
+                        MainWindow.webContents.send('cf-calculation-result', { success: false, output: "Failed to calculate carbon footprint." });
                     }
                 } else {
                     // Debugging output to understand why the insertion didn't happen
