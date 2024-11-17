@@ -24,3 +24,6 @@ window.ipc.on('cf-calculation-result', function(event, data) {
         cfOutputDiv.textContent = `Error: ${data.output}`;
     }
 });
+function navigateTo(page) {
+    window.location.href = page; 
+}

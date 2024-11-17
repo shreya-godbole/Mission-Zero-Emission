@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Carbon Footprint</title>
+    <link rel="stylesheet" href="../styles/carbon-style.css">
+</head>
+<body>
+    <div class="container">
+        <div class="sidebar">
+            <img src="../styles/images/IBM.png" alt="Company Logo">
+            <div class="menu-item" onclick="navigateTo('../index.html')">Energy Consumption</div>
+            <div class="menu-item" onclick="navigateTo('dashboard.html')">Dashboard</div>
+            <div class="menu-item" onclick="navigateTo('reports.html')">Reports</div>
+            <div class="menu-item" onclick="navigateTo('carbon.html')">Carbon Footprint</div>
+            <div class="menu-item" onclick="navigateTo('settings.html')">Settings</div>
+        </div>
+
+        <div class="content">
+            <h1>Carbon Footprint Calculator</h1>
+            <label for="country-select">Select Country:</label>
+            <select id="country-select">
+                <option value="india">India</option>
+                <!-- Add more options as needed -->
+            </select>
+            <button onclick="calculateCarbonFootprint()">Calculate Footprint</button>
+
+            <div id="carbon-result">Carbon Footprint: <span id="cf-value">-</span></div>
+        </div>
+    </div>
+
+    <script src="../scripts/carbon.js"></script>
+</body>
+</html>

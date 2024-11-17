@@ -3,7 +3,7 @@ const axios = require('axios');
 // Function to get carbon intensity
 async function getCarbonIntensity(zone) {
     const apiUrl = `https://api.electricitymap.org/v3/carbon-intensity/latest?zone=${zone}`;
-    const apiToken = '3SSntUsg5z9g0'; // Replace with your API token
+    const apiToken = '3SSntUsg5z9g0'; 
 
     try {
         const response = await axios.get(apiUrl, {

@@ -1,12 +1,11 @@
 const ini = require('ini');
 const fs = require('fs');
-const csv = require('csv-parser');
 const path = require('path');
 const { spawn } = require('child_process');
 const Database = require('better-sqlite3');
-const getCarbonIntensity = require('./carbonIntensity');
+const getCarbonIntensity = require('./scripts/carbonIntensity');
 const { app, BrowserWindow, ipcMain, dialog } = require('electron');
-const getCarbonFootprint = require('./carbonFootprint');
+const getCarbonFootprint = require('./scripts/carbonFootprint');
 
 // Load the configuration from the config.ini file
 const config = ini.parse(fs.readFileSync(path.join(__dirname, 'config.ini'), 'utf-8'));
@@ -181,11 +180,11 @@ app.on('ready', function() {
                         stmt.run(fullID, dateMatch, selectedFilePath, joulesValue);
                         console.log('Data successfully saved to database');
                         MainWindow.webContents.send('java-command-result', { success: true, output: joulesLine });
-                        MainWindow.webContents.send('cf-calculation-result', {success: true, output: carbonFootprintOutput });
+                        //MainWindow.webContents.send('cf-calculation-result', {success: true, output: carbonFootprintOutput });
                     } catch (err) {
                         console.error('Error while inserting into database:', err.message); // Log the error message
                         MainWindow.webContents.send('java-command-result', { success: false, output: "Failed to save data to database." });
-                        MainWindow.webContents.send('cf-calculation-result', { success: false, output: "Failed to calculate carbon footprint." });
+                        //MainWindow.webContents.send('cf-calculation-result', { success: false, output: "Failed to calculate carbon footprint." });
                     }
                 } else {
                     // Debugging output to understand why the insertion didn't happen
