@@ -5,3 +5,7 @@
 3. execute the command: npm install electron --save-dev
 4. To start the app, use the command: npm start
 5. To install sqlite, use command: npm install better-sqlite3. Refer to 'https://stackoverflow.com/questions/46384591/node-was-compiled-against-a-different-node-js-version-using-node-module-versio' (second solution) for any discrepencies.
+6. Install follwing libraries:
+  npm install ini
+  npm install axios
+  
