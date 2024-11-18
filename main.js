@@ -104,7 +104,7 @@ app.on('ready', function() {
                     }
                 });
 
-                InteractiveWindow.loadURL('file://' + __dirname + '/interactive.html');
+                InteractiveWindow.loadURL('file://' + __dirname + './views/interactive.html');
                 InteractiveWindow.on('closed', () => (InteractiveWindow = null));
             }
 
