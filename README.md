@@ -8,4 +8,8 @@
 6. Install follwing libraries:
   npm install ini
   npm install axios
+7. Install the libraries for testing:
+  1.npm install --save-dev mocha chai
+  2. npm install --save-dev spectron
+
   
