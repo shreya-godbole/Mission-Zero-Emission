@@ -26,8 +26,8 @@ db.exec(`
 
 // Access settings from the config
 const joularjxTargetPath = config.settings.joularjx_path;
-const javaPath = config.settings.java_path;
-//const resultsDir = config.settings.results_dir;
+const executionPath = config.settings.cwd;
+const resultsDirjoular = config.settings.results_dir;
 const dbPath = config.database.db_path;
 
 app.on('ready', function() {
@@ -54,24 +54,11 @@ app.on('ready', function() {
             const selectedFilePath = filePaths[0];
             const fileExtension = path.extname(selectedFilePath).toLowerCase();
 
-            // const javaClassName = path.basename(selectedFilePath, '.java'); // Extracts class name
-            // const resultsDir = path.join(__dirname, 'results', javaClassName); // Create a unique results folder for the class
-            // // Create the directory if it doesn't exist
-            // if (!fs.existsSync(resultsDir)) {
-            //     fs.mkdirSync(resultsDir, { recursive: true });
-            // }
-             //const joularjxTargetPath = path.join(process.env.HOME, 'joularjx', 'target');
-            //const joularjxJarPath = path.join(joularjxTargetPath, 'joularjx-3.0.0.jar');
-            // const javaProcess = spawn('/usr/lib/jvm/java-17-openjdk-amd64/bin/java', [
-            //     `-javaagent:${joularjxJarPath}`,
-            //     selectedFilePath ,
-            //     javaClassName
-            // ], { cwd: resultsDir });
-
             event.sender.send('send-selected-file', selectedFilePath);
 
-            const joularjxTargetPath = 'C:\\joularjx\\target';
-            const agentPath = path.join(joularjxTargetPath, 'joularjx-3.0.0.jar');
+            // const joularjxTargetPath = 'C:\\joularjx\\target';
+            // const agentPath = path.join(joularjxTargetPath, 'joularjx-3.0.0.jar');
+            const agentPath = joularjxTargetPath;
             let javaArgs = [];
 
             if (fileExtension === '.jar') {
@@ -86,7 +73,7 @@ app.on('ready', function() {
                 return;
             }
 
-            const javaProcess = spawn('java', javaArgs, { cwd: joularjxTargetPath });
+            const javaProcess = spawn('java', javaArgs, { cwd: executionPath });
             let joulesLine = '';
             let outputBuffer = '';
             let fullID = '';
