@@ -33,8 +33,8 @@ const dbPath = config.database.db_path;
 app.on('ready', function() {
     let MainWindow = new BrowserWindow({
         resizable: true,
-        height: 600,
-        width: 800,
+        height: 800,
+        width: 1000,
         webPreferences: {
             contextIsolation: false,
             preload: path.join(__dirname, 'preload.js')
@@ -83,8 +83,8 @@ app.on('ready', function() {
 
             if (!InteractiveWindow) {
                 InteractiveWindow = new BrowserWindow({
-                    width: 500,
-                    height: 300,
+                    width: 800,
+                    height:600,
                     webPreferences: {
                         contextIsolation: false,
                         preload: path.join(__dirname, 'preload.js')

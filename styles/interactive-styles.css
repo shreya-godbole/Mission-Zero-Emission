@@ -1,0 +1,65 @@
+body {
+    font-family: 'Roboto', sans-serif;
+    margin: 0;
+    color: #333;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    background: linear-gradient(to bottom, #f9f9fb, #e9ecf2);
+}
+
+#output {
+    flex-grow: 1;
+    background-color: #fff;
+    padding: 20px;
+    margin: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    overflow-y: auto;
+    color: #4a6173;
+    font-size: 1rem;
+}
+
+#user-input {
+    padding: 10px;
+    font-size: 1rem;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    width: calc(100% - 44px); /* Adjusts width to fit within the button container */
+    margin: 10px 20px;
+    background-color: #f9f9fb;
+    color: #333;
+    outline: none;
+    transition: border-color 0.3s ease;
+}
+
+#user-input:focus {
+    border-color: #4a6173;
+}
+
+#send-button {
+    padding: 10px 20px;
+    font-size: 1rem;
+    cursor: pointer;
+    border: none;
+    background-color: #4a6173;
+    color: white;
+    border-radius: 5px;
+    margin: 10px 20px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    transition: background-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+#send-button:hover {
+    background-color: #5271a0;
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+}
+
+button:active {
+    transform: translateY(2px);
+}
+
+/* Optional: To center the input and button at the bottom */
+body {
+    justify-content: space-between;
+}
