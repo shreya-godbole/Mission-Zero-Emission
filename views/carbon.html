@@ -3,16 +3,27 @@
 <head>
     <title>Carbon Footprint</title>
     <link rel="stylesheet" href="../styles/carbon-style.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
 </head>
 <body>
     <div class="container">
-        <div class="sidebar">
-            <img src="../styles/images/MZE_logo.png" alt="Company Logo">
-            <div class="menu-item" onclick="navigateTo('../index.html')">Energy Consumption</div>
-            <div class="menu-item" onclick="navigateTo('dashboard.html')">Dashboard</div>
-            <div class="menu-item" onclick="navigateTo('reports.html')">Reports</div>
-            <div class="menu-item" onclick="navigateTo('carbon.html')">Carbon Footprint</div>
-            <!-- <div class="menu-item" onclick="navigateTo('settings.html')">Settings</div> -->
+        <div class="sidebar" id="sidebar">
+            <button class="toggle-btn" onclick="toggleSidebar()">
+                <i class="fas fa-bars"></i>
+            </button>
+            <img src="../styles/images/MZE_logo.png" alt="Company Logo" class="logo">
+            <div class="menu-item" onclick="navigateTo('../index.html')">
+                <i class="fas fa-bolt"></i> <span class="menu-text">Energy Consumption</span>
+            </div>
+            <div class="menu-item" onclick="navigateTo('dashboard.html')">
+                <i class="fas fa-chart-line"></i> <span class="menu-text">Dashboard</span>
+            </div>
+            <div class="menu-item" onclick="navigateTo('reports.html')">
+                <i class="fas fa-file-alt"></i> <span class="menu-text">Reports</span>
+            </div>
+            <div class="menu-item" onclick="navigateTo('carbon.html')">
+                <i class="fas fa-leaf"></i> <span class="menu-text">Carbon Footprint</span>
+            </div>
         </div>
 
         <div class="content">
@@ -26,7 +37,12 @@
             <div id="carbon-result">Carbon Footprint: <span id="cf-value">-</span></div>
         </div>
     </div>
-
+    <script>
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            sidebar.classList.toggle('collapsed');
+        }
+    </script>
     <script src="../scripts/carbon.js"></script>
 </body>
 </html>

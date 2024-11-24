@@ -24,6 +24,17 @@ window.ipc.on('cf-calculation-result', function(event, data) {
         cfOutputDiv.textContent = `Error: ${data.output}`;
     }
 });
+  
+window.onload = function() {
+    // Example of sending a message to the main process
+    ipcRenderer.send('request-data', 'Hello from renderer.js');
+    
+    ipcRenderer.on('send-response', (event, data) => {
+        console.log('Received response:', data);
+    });
+};
+
+// Define the navigateTo function
 function navigateTo(page) {
-    window.location.href = page; 
+    window.location.href = page;
 }
