@@ -36,8 +36,9 @@ app.on('ready', function() {
         height: 800,
         width: 1000,
         webPreferences: {
-            contextIsolation: false,
-            preload: path.join(__dirname, 'preload.js')
+            contextIsolation: true,
+            preload: path.join(__dirname, 'preload.js'),
+            nodeIntegration: false  
         }
     });
 
@@ -86,8 +87,9 @@ app.on('ready', function() {
                     width: 800,
                     height:600,
                     webPreferences: {
-                        contextIsolation: false,
-                        preload: path.join(__dirname, 'preload.js')
+                        contextIsolation: true,
+                        preload: path.join(__dirname, 'preload.js'),
+                        nodeIntegration: false 
                     }
                 });
 

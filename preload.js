@@ -1,11 +1,26 @@
-// preload.js
-const { ipcRenderer } = require('electron');
-window.ipc = ipcRenderer; // Expose ipcRenderer to the renderer process
+const { contextBridge, ipcRenderer } = require('electron');
 
-const { contextBridge } = require('electron');
-
+// Expose ipcRenderer methods to the renderer process
 contextBridge.exposeInMainWorld('electronAPI', {
-    onFileSelected: (callback) => ipcRenderer.on('send-selected-file', callback),
+    // Trigger file dialog
     sendOpenFileDialog: () => ipcRenderer.send('open-file-dialog'),
-    onJavaCommandResult: (callback) => ipcRenderer.on('java-command-result', callback),
+
+    // Listen for selected file path
+    onFileSelected: (callback) => ipcRenderer.on('send-selected-file', (_, path) => callback(path)),
+
+    // Listen for Java program output (for both main and interactive windows)
+    onJavaOutput: (callback) => ipcRenderer.on('java-output', (_, data) => callback(data)),
+
+    // Listen for Java command result
+    onJavaCommandResult: (callback) => ipcRenderer.on('java-command-result', (_, data) => callback(data)),
+
+    // Send user input from the interactive window
+    sendUserInput: (input) => ipcRenderer.send('send-user-input', input),
+
+    // Listen for carbon footprint calculation result
+    onCfCalculationResult: (callback) => ipcRenderer.on('cf-calculation-result', (_, data) => callback(data)),
+
+    // General purpose request-response communication
+    requestData: (message) => ipcRenderer.send('request-data', message),
+    onSendResponse: (callback) => ipcRenderer.on('send-response', (_, data) => callback(data)),
 });
