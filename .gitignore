@@ -1,4 +1,4 @@
 node_modules/
-package.json
-package-lock.json
 energy_measurement.db
+package-lock.json
+package.json
