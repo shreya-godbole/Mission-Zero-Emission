@@ -4,38 +4,199 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Reports</title>
-    <link rel="stylesheet" href="../styles/styles.css">
+    <link rel="stylesheet" href="../styles/carbon-style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
-</head>
-    <body>
-        <div class="container">
-            <div class="sidebar" id="sidebar">
-                <button class="toggle-btn" onclick="toggleSidebar()">
-                    <i class="fas fa-bars"></i>
-                </button>
-                <img src="../styles/images/MZE_logo.png" alt="Company Logo" class="logo">
-                <div class="menu-item" onclick="navigateTo('../index.html')">
-                    <i class="fas fa-bolt"></i> <span class="menu-text">Energy Consumption</span>
-                </div>
-                <div class="menu-item" onclick="navigateTo('dashboard.html')">
-                    <i class="fas fa-chart-line"></i> <span class="menu-text">Dashboard</span>
-                </div>
-                <div class="menu-item" onclick="navigateTo('reports.html')">
-                    <i class="fas fa-file-alt"></i> <span class="menu-text">Reports</span>
-                </div>
-                <div class="menu-item" onclick="navigateTo('carbon.html')">
-                    <i class="fas fa-leaf"></i> <span class="menu-text">Carbon Footprint</span>
-                </div>
-            </div>
     
+</head>
+<body>
+    <div class="container">
+        <div class="sidebar" id="sidebar">
+            <button class="toggle-btn" onclick="toggleSidebar()">
+                <i class="fas fa-bars"></i>
+            </button>
+            <img src="../styles/images/MZE_logo.png" alt="Company Logo" class="logo">
+            <div class="menu-item" onclick="navigateTo('../index.html')">
+                <i class="fas fa-bolt"></i> <span class="menu-text">Energy Consumption</span>
+            </div>
+            <div class="menu-item" onclick="navigateTo('dashboard.html')">
+                <i class="fas fa-chart-line"></i> <span class="menu-text">Dashboard</span>
+            </div>
+            <div class="menu-item" onclick="navigateTo('reports.html')">
+                <i class="fas fa-file-alt"></i> <span class="menu-text">Reports</span>
+            </div>
+            <div class="menu-item" onclick="navigateTo('carbon.html')">
+                <i class="fas fa-leaf"></i> <span class="menu-text">Carbon Footprint</span>
+            </div>
         </div>
-        <script>
-            function toggleSidebar() {
-                const sidebar = document.getElementById('sidebar');
-                sidebar.classList.toggle('collapsed');
-            }
-        </script>
-        <script src="../renderer.js"></script>
-        <script src="./scripts/carbon.js"></script>
-    </body>
+        <div class="content">
+            <h1>Energy Consumption Heatmap</h1>
+
+            <!-- File selection -->
+            <label for="fileSelect">Select File:</label>
+            <select id="fileSelect">
+                <option value="" disabled selected>Select a file</option>
+            </select>
+
+            <!-- Date range selection -->
+            <label for="startDate">Start Date:</label>
+            <input type="date" id="startDate">
+
+            <label for="endDate">End Date:</label>
+            <input type="date" id="endDate">
+
+            <br><br>
+
+            <!-- Plot button -->
+            <button id="plotButton">Plot</button>
+
+            <br><br>
+
+            <!-- Chart container -->
+            <canvas id="heatmapChart" width="400" height="150"></canvas>
+
+            <script>
+                const backendURL = "http://127.0.0.1:5000"; // Backend URL
+
+                // DOM Elements
+                const fileSelect = document.getElementById("fileSelect");
+                const startDateInput = document.getElementById("startDate");
+                const endDateInput = document.getElementById("endDate");
+                const plotButton = document.getElementById("plotButton");
+                const ctx = document.getElementById("heatmapChart").getContext("2d");
+
+                // Chart instance
+                let heatmapChart;
+
+                // Fetch available files and populate dropdown
+                async function fetchFiles() {
+                    try {
+                        const response = await fetch(`${backendURL}/fetch-files`);
+                        const files = await response.json();
+                        files.forEach(file => {
+                            const option = document.createElement("option");
+                            option.value = file;
+                            option.textContent = file;
+                            fileSelect.appendChild(option);
+                        });
+                    } catch (error) {
+                        console.error("Error fetching files:", error);
+                    }
+                }
+
+                // Fetch heatmap data for the selected file and date range
+                async function fetchHeatmapData(fileName, startDate, endDate) {
+                    try {
+                        const response = await fetch(`${backendURL}/generate-heatmap?file=${fileName}&startDate=${startDate}&endDate=${endDate}`);
+                        const data = await response.json();
+                        return data;
+                    } catch (error) {
+                        console.error("Error fetching heatmap data:", error);
+                    }
+                }
+
+                // Generate heatmap chart
+                function generateHeatmap(data) {
+                    if (!data || data.length === 0) {
+                        alert("No data available for the selected range.");
+                        return;
+                    }
+
+                    // Extract labels (dates) and values (joules)
+                    const labels = data.map(item => item.date);
+                    const values = data.map(item => item.joules);
+
+                    console.log("Labels:", labels);
+                    console.log("Values:", values);
+
+                    // Destroy previous chart if it exists
+                    if (heatmapChart) {
+                        heatmapChart.destroy();
+                    }
+
+                    // Create new chart
+                    heatmapChart = new Chart(ctx, {
+                        type: "bar",
+                        data: {
+                            labels: labels,
+                            datasets: [
+                                {
+                                    label: "Energy Consumption (Joules)",
+                                    data: values,
+                                    backgroundColor: values.map(value =>
+                                        // Adjust color mapping: Red for higher values, Green for lower
+                                        `rgba(${Math.min(value * 10, 255)}, ${255 - Math.min(value * 10, 255)}, 0, 0.7)`
+                                    ),
+                                    borderColor: "rgba(255, 99, 132, 1)",
+                                    borderWidth: 1,
+                                }
+                            ]
+                        },
+                        options: {
+                            plugins: {
+                                datalabels: {
+                                    color: "#000",
+                                    align: "end",
+                                    anchor: "end",
+                                    formatter: value => `${value.toFixed(2)} J`
+                                }
+                            },
+                            responsive: true,
+                            scales: {
+                                x: {
+                                    title: {
+                                        display: true,
+                                        text: "Date"
+                                    }
+                                },
+                                y: {
+                                    beginAtZero: true,
+                                    title: {
+                                        display: true,
+                                        text: "Energy (Joules)"
+                                    }
+                                }
+                            },
+                            interaction: {
+                                mode: "index",
+                                intersect: false
+                            },
+                            maintainAspectRatio: true
+                        }
+                    });
+                }
+
+
+                // Handle plot button click
+                plotButton.addEventListener("click", async () => {
+                    const selectedFile = fileSelect.value;
+                    const startDate = startDateInput.value;
+                    const endDate = endDateInput.value;
+
+                    if (selectedFile && startDate && endDate) {
+                        const heatmapData = await fetchHeatmapData(selectedFile, startDate, endDate);
+                        generateHeatmap(heatmapData);
+                    } else {
+                        alert("Please select a file and a valid date range.");
+                    }
+                });
+
+                // Initialize
+                fetchFiles();                
+                
+                        // Initialize the app
+                        loadFiles();
+                    
+                            function toggleSidebar() {
+                                const sidebar = document.getElementById('sidebar');
+                                sidebar.classList.toggle('collapsed');
+                            }
+
+                            function navigateTo(path) {
+                                window.location.href = path;
+                            }
+                </script>
+            </div>
+
+</body>
 </html>
