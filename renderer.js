@@ -1,6 +1,6 @@
 const buttonCreated = document.getElementById('upload');
 const joulesOutputDiv = document.getElementById('result');
-const cfOutputDiv = document.getElementById('cfResult');
+const cfOutputDiv = document.getElementById('cf-value');
 
 // Open file dialog when the button is clicked
 buttonCreated.addEventListener('click', () => {
@@ -24,7 +24,7 @@ window.electronAPI.onJavaCommandResult((data) => {
 // Handle carbon footprint calculation result
 window.electronAPI.onCfCalculationResult((data) => {
     if (data.success) {
-        cfOutputDiv.textContent = `Carbon Footprint: ${data.output}`;
+        cfOutputDiv.textContent = `Carbon Footprint: ${data.output} grams`;
     } else {
         cfOutputDiv.textContent = `Error: ${data.output}`;
     }
@@ -38,6 +38,43 @@ window.onload = function() {
         console.log('Received response:', data);
     });
 };
+
+document.addEventListener("DOMContentLoaded", function() {
+    populateDropdown();
+});
+
+function populateDropdown() {
+    const url = 'https://api.electricitymap.org/v3/zones';
+
+    fetch(url)
+        .then(response => response.json())
+        .then(data => {
+            const dropdown = document.getElementById("country-select");
+
+            // Filter zones where countryName is "India"
+            const indiaZones = Object.entries(data).filter(
+                ([zoneId, zone]) => zone.countryName === "India"
+            );
+
+            // Populate the dropdown
+            indiaZones.forEach(([zoneId, zone]) => {
+                const option = document.createElement("option");
+                option.value = zoneId;
+                option.textContent = zone.zoneName;
+                dropdown.appendChild(option);
+            });
+        })
+        .catch(error => {
+            console.error("Error fetching data:", error);
+        });
+}
+
+// Send selected zone ID to the main process
+document.getElementById("country-select").addEventListener("change", () => {
+    const selectedZoneId = document.getElementById("country-select").value;
+    console.log(`Selected Zone ID: ${selectedZoneId}`);
+    window.electronAPI.sendZoneSelected(selectedZoneId);
+});
 
 // Navigation function (optional, if needed for page navigation)
 function navigateTo(page) {

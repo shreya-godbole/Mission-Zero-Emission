@@ -9,6 +9,6 @@ window.electronAPI.onJavaOutput((data) => {
 
 sendButton.addEventListener('click', () => {
     const input = userInput.value;
-    window.electronAPI.sendUserInput('send-user-input', input);
+    window.electronAPI.sendUserInput(input);
     userInput.value = ''; // Clear the input field
 });

@@ -20,7 +20,9 @@ db.exec(`
         id TEXT PRIMARY KEY,
         date TEXT,
         file TEXT,
-        joules TEXT
+        joules TEXT,
+        zoneID TEXT,
+        carbonFootprint TEXT
     )
 `);
 
@@ -29,6 +31,9 @@ const joularjxTargetPath = config.settings.joularjx_path;
 const executionPath = config.settings.cwd;
 const resultsDirjoular = config.settings.results_dir;
 const dbPath = config.database.db_path;
+let selectedZoneId = 'IN';
+let carbonFootprintOutput;
+
 
 app.on('ready', function() {
     let MainWindow = new BrowserWindow({
@@ -41,10 +46,16 @@ app.on('ready', function() {
             nodeIntegration: false  
         }
     });
+    
 
     MainWindow.loadURL('file:' + __dirname + '/index.html');
 
     let InteractiveWindow = null;
+
+    ipcMain.on('zone-id-selected', (event, zoneId) => {
+        console.log('Received Zone ID:', zoneId);
+        selectedZoneId = zoneId;
+    });
 
     ipcMain.on('open-file-dialog', async function(event) {
         const { canceled, filePaths } = await dialog.showOpenDialog({
@@ -80,7 +91,6 @@ app.on('ready', function() {
             let fullID = '';
             let dateMatch;
             let joulesValue;
-            let carbonFootprintOutput;
 
             if (!InteractiveWindow) {
                 InteractiveWindow = new BrowserWindow({
@@ -144,7 +154,9 @@ app.on('ready', function() {
 
             javaProcess.on('close', (code) => {
                 if (code === 0 && joulesLine && fullID) { // Check if both variables are set
-                    getCarbonIntensity('IN')
+                    console.log(`Zone ID: ${selectedZoneId}`);
+                    if(selectedZoneId !== null){
+                        getCarbonIntensity(selectedZoneId)
                         .then(carbonIntensity => {
                             // Use carbonIntensity value in your logic
                             console.log(`Carbon Intensity: ${carbonIntensity}`);
@@ -153,27 +165,29 @@ app.on('ready', function() {
                         .then(carbonFootprint => {
                             // Use carbonFootprint value in your logic
                             carbonFootprintOutput = carbonFootprint;
-                            console.log(`Carbon Footprint: ${carbonFootprint} grams`);
+                            console.log(`Carbon Footprint: ${carbonFootprintOutput} grams`);
+
+                            try {
+                                // Debugging output to check values before insertion
+                                console.log('Inserting into database:');
+                                console.log('ID:', fullID);
+                                console.log('File Path:', selectedFilePath);
+                                console.log('Joules Line:', joulesLine);
+                    
+                                const stmt = db.prepare('INSERT INTO measurements_data (id, date, file, joules, zoneID, carbonFootprint) VALUES (?, ?, ?, ?, ?, ?)');
+                                stmt.run(fullID, dateMatch, selectedFilePath, joulesValue, selectedZoneId, carbonFootprintOutput);
+                                console.log('Data successfully saved to database');
+                                MainWindow.webContents.send('java-command-result', { success: true, output: joulesLine });
+                                MainWindow.webContents.send('cf-calculation-result', {success: true, output: carbonFootprintOutput });
+                            } catch (err) {
+                                console.error('Error while inserting into database:', err.message); // Log the error message
+                                MainWindow.webContents.send('java-command-result', { success: false, output: "Failed to save data to database." });
+                                MainWindow.webContents.send('cf-calculation-result', { success: false, output: "Failed to calculate carbon footprint." });
+                            }
                         })
                         .catch(error => {
                             console.error('Error:', error);
                         });
-                    try {
-                        // Debugging output to check values before insertion
-                        console.log('Inserting into database:');
-                        console.log('ID:', fullID);
-                        console.log('File Path:', selectedFilePath);
-                        console.log('Joules Line:', joulesLine);
-            
-                        const stmt = db.prepare('INSERT INTO measurements_data (id, date, file, joules) VALUES (?, ?, ?, ?)');
-                        stmt.run(fullID, dateMatch, selectedFilePath, joulesValue);
-                        console.log('Data successfully saved to database');
-                        MainWindow.webContents.send('java-command-result', { success: true, output: joulesLine });
-                        //MainWindow.webContents.send('cf-calculation-result', {success: true, output: carbonFootprintOutput });
-                    } catch (err) {
-                        console.error('Error while inserting into database:', err.message); // Log the error message
-                        MainWindow.webContents.send('java-command-result', { success: false, output: "Failed to save data to database." });
-                        //MainWindow.webContents.send('cf-calculation-result', { success: false, output: "Failed to calculate carbon footprint." });
                     }
                 } else {
                     // Debugging output to understand why the insertion didn't happen

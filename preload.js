@@ -2,6 +2,8 @@ const { contextBridge, ipcRenderer } = require('electron');
 
 // Expose ipcRenderer methods to the renderer process
 contextBridge.exposeInMainWorld('electronAPI', {
+    sendZoneSelected: (zoneId) => ipcRenderer.send('zone-id-selected', zoneId),
+    
     // Trigger file dialog
     sendOpenFileDialog: () => ipcRenderer.send('open-file-dialog'),
 
