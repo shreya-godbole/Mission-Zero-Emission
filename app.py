@@ -10,7 +10,7 @@ import io
 app = Flask(__name__)
 
 # Path to the SQLite database file
-DATABASE = 'measurements_data.db'
+DATABASE = 'energy_measurement.db'
 
 def get_db():
     conn = sqlite3.connect(DATABASE)

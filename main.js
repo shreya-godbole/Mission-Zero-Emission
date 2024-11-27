@@ -20,6 +20,8 @@ db.exec(`
         id TEXT PRIMARY KEY,
         date TEXT,
         file TEXT,
+        startTime TEXT,
+        endTime TEXT,
         joules TEXT,
         zoneID TEXT,
         carbonFootprint TEXT
@@ -91,6 +93,8 @@ app.on('ready', function() {
             let fullID = '';
             let dateMatch;
             let joulesValue;
+            let startTime = null; 
+            let endTime = null;
 
             if (!InteractiveWindow) {
                 InteractiveWindow = new BrowserWindow({
@@ -115,6 +119,13 @@ app.on('ready', function() {
                     InteractiveWindow.webContents.send('java-output', output);
                 }
 
+                if (!startTime) {
+                    const firstLineMatch = output.match(/\d{2}:\d{2}:\d{2}/);
+                    if (firstLineMatch) {
+                        startTime = firstLineMatch[0];
+                    }
+                }
+
                 const match = output.match(/Program consumed ([0-9]*\.?[0-9]+) joules/);
                 if (match) {
                     joulesLine = match[0];
@@ -125,12 +136,20 @@ app.on('ready', function() {
             javaProcess.stderr.on('data', (data) => {
                 const errorOutput = data.toString();
                 outputBuffer += errorOutput;
+
+                if (!startTime) {
+                    const firstLineMatch = errorOutput.match(/\d{2}:\d{2}:\d{2}/);
+                    if (firstLineMatch) {
+                        startTime = firstLineMatch[0];
+                    }
+                }
+
                 const match = errorOutput.match(/Program consumed ([0-9]*\.?[0-9]+) joules/);
                 if (match) {
                     joulesLine = match[0]; 
                     joulesValue = parseFloat(match[1]); 
                 }
-                dateMatch = errorOutput.match(/\d{2}\/\d{2}\/\d{4} /); //\d{2}:\d{2}:\d{2}\.\d{3}/);
+                dateMatch = errorOutput.match(/\d{2}\/\d{2}\/\d{4} /); 
                 if (dateMatch) {
                     dateLine = dateMatch[0]; // Capture the date
                 }
@@ -153,6 +172,13 @@ app.on('ready', function() {
             });
 
             javaProcess.on('close', (code) => {
+                const lastLine = outputBuffer.trim().split('\n').slice(-1)[0];
+                const lastTimeMatch = lastLine.match(/\d{2}:\d{2}:\d{2}/);
+                if (lastTimeMatch) {
+                    endTime = lastTimeMatch[0];
+                }
+
+                console.log(`Start Time: ${startTime}, End Time: ${endTime}`);
                 if (code === 0 && joulesLine && fullID) { // Check if both variables are set
                     console.log(`Zone ID: ${selectedZoneId}`);
                     if(selectedZoneId !== null){
@@ -174,8 +200,8 @@ app.on('ready', function() {
                                 console.log('File Path:', selectedFilePath);
                                 console.log('Joules Line:', joulesLine);
                     
-                                const stmt = db.prepare('INSERT INTO measurements_data (id, date, file, joules, zoneID, carbonFootprint) VALUES (?, ?, ?, ?, ?, ?)');
-                                stmt.run(fullID, dateMatch, selectedFilePath, joulesValue, selectedZoneId, carbonFootprintOutput);
+                                const stmt = db.prepare('INSERT INTO measurements_data (id, date, file, startTime, endTime, joules, zoneID, carbonFootprint) VALUES (?, ?, ?, ?, ?, ?, ?, ?)');
+                                stmt.run(fullID, dateMatch, selectedFilePath, startTime, endTime, joulesValue, selectedZoneId, carbonFootprintOutput);
                                 console.log('Data successfully saved to database');
                                 MainWindow.webContents.send('java-command-result', { success: true, output: joulesLine });
                                 MainWindow.webContents.send('cf-calculation-result', {success: true, output: carbonFootprintOutput });
