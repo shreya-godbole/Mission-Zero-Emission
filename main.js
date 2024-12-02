@@ -95,6 +95,8 @@ app.on('ready', function() {
             let joulesValue;
             let startTime = null; 
             let endTime = null;
+            let programRuntime = ''
+            let useCaseInput = '';
 
             if (!InteractiveWindow) {
                 InteractiveWindow = new BrowserWindow({
@@ -108,8 +110,38 @@ app.on('ready', function() {
                 });
 
                 InteractiveWindow.loadURL('file://' + __dirname + './views/interactive.html');
-                InteractiveWindow.on('closed', () => (InteractiveWindow = null));
+                InteractiveWindow.on('closed', () => {
+                    createUseCaseWindow();
+                });
             }
+
+            function createUseCaseWindow() {
+                let useCaseWindow = new BrowserWindow({
+                  width: 400,
+                  height: 300,
+                  modal: true,
+                  webPreferences: {
+                    nodeIntegration: true,
+                    preload: path.join(__dirname, 'preload.js'),
+                    contextIsolation: true,
+                  }
+                });
+                useCaseWindow.loadFile('./views/useCase.html'); // HTML file for the pop-up
+                useCaseWindow.webContents.once('did-finish-load', () => {
+                    const rows = db.prepare('SELECT DISTINCT use_case FROM measurements_data').all();
+                    const useCases = rows.map(row => row.use_case); // Extract use-case values
+                    useCaseWindow.webContents.send('previous-use-cases', useCases);
+                  });
+              }
+
+              ipcMain.on('save-use-case', (event, useCase) => {
+                useCaseInput = useCase;
+                const stmt = db.prepare('UPDATE measurements_data SET use_case = ? WHERE id = ?');
+                stmt.run(useCase, fullID);
+              
+                // Close the use-case window
+                BrowserWindow.getFocusedWindow().close();
+              });
 
             javaProcess.stdout.on('data', (data) => {
                 const output = data.toString();

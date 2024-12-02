@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Use-Case</title>
+  <link rel="stylesheet" href="../styles/useCase-style.css">
+</head>
+<body>
+    <h2>Enter the Use-Case</h2>
+    <input type="text" id="useCaseInput" placeholder="Describe the use-case" list="useCaseSuggestions" />
+    <datalist id="useCaseSuggestions"></datalist>
+    <button onclick="submitUseCase()">Submit</button>
+  
+    <script>
+      window.electronAPI.onUseCaseData((useCases) => {
+        const dataList = document.getElementById('useCaseSuggestions');
+        dataList.innerHTML = ''; // Clear previous suggestions
+        useCases.forEach(useCase => {
+          const option = document.createElement('option');
+          option.value = useCase;
+          dataList.appendChild(option);
+        });
+      });
+  
+      function submitUseCase() {
+        const useCase = document.getElementById('useCaseInput').value;
+        window.electronAPI.sendUseCase(useCase);
+      }
+    </script>
+  </body>
+</html>
