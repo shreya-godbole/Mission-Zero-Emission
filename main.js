@@ -24,7 +24,8 @@ db.exec(`
         endTime TEXT,
         joules TEXT,
         zoneID TEXT,
-        carbonFootprint TEXT
+        carbonFootprint TEXT,
+        use_case TEXT
     )
 `);
 
@@ -111,6 +112,7 @@ app.on('ready', function() {
 
                 InteractiveWindow.loadURL('file://' + __dirname + './views/interactive.html');
                 InteractiveWindow.on('closed', () => {
+                    InteractiveWindow = null;
                     createUseCaseWindow();
                 });
             }
