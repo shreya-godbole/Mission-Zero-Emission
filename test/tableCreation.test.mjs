@@ -32,7 +32,7 @@ describe('Table Creation', function() {
 
     // Run the table creation script
     db.exec(`
-      CREATE TABLE IF NOT EXISTS measurements_data (
+      CREATE TABLE IF NOT EXISTS all_data (
         id TEXT PRIMARY KEY,
         date TEXT,
         file TEXT,
@@ -48,13 +48,13 @@ describe('Table Creation', function() {
     }
   });
 
-  it('should ensure the measurements_data table is created', function() {
+  it('should ensure the all_data table is created', function() {
     // Check if the table exists in the database
     const result = db.prepare(`
-      SELECT name FROM sqlite_master WHERE type='table' AND name='measurements_data';
+      SELECT name FROM sqlite_master WHERE type='table' AND name='all_data';
     `).get();
 
     expect(result).to.not.be.undefined; // Check if the result is not undefined, meaning the table exists
-    expect(result.name).to.equal('measurements_data'); // Check that the table name is correct
+    expect(result.name).to.equal('all_data'); // Check that the table name is correct
   });
 });

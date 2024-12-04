@@ -21,7 +21,7 @@ def get_db():
 def fetch_files():
     conn = get_db()
     cursor = conn.cursor()
-    cursor.execute('SELECT DISTINCT file FROM measurements_data')
+    cursor.execute('SELECT DISTINCT file FROM all_data')
     files = cursor.fetchall()
     return jsonify([file['file'] for file in files])
 
@@ -29,7 +29,7 @@ def fetch_files():
 def fetch_dates():
     conn = get_db()
     cursor = conn.cursor()
-    cursor.execute('SELECT DISTINCT date FROM measurements_data')
+    cursor.execute('SELECT DISTINCT date FROM all_data')
     dates = cursor.fetchall()
     return jsonify([date['date'] for date in dates])
 
@@ -44,7 +44,7 @@ def fetch_graph_data():
 
     conn = get_db()
     cursor = conn.cursor()
-    cursor.execute('SELECT date, joules FROM measurements_data WHERE file=? AND date LIKE ?', (selected_file, formatted_date + '%'))
+    cursor.execute('SELECT date, joules FROM all_data WHERE file=? AND date LIKE ?', (selected_file, formatted_date + '%'))
     data = cursor.fetchall()
 
     return jsonify([{'date': row[0], 'joules': row[1]} for row in data])
@@ -80,7 +80,7 @@ def generate_heatmap():
     # Log the query
     query = '''
         SELECT date, joules 
-        FROM measurements_data 
+        FROM all_data 
         WHERE file = ? AND date BETWEEN ? AND ?
     '''
     print(f"Executing query: {query} with params ({selected_file}, {formatted_startdate}, {formatted_enddate})")
@@ -106,7 +106,7 @@ def generate_heatmap():
 if __name__ == '__main__':
     if not os.path.exists(DATABASE):
         conn = sqlite3.connect(DATABASE)
-        conn.execute('CREATE TABLE measurements_data (id TEXT PRIMARY KEY, date TEXT, file TEXT, joules TEXT)')
+        conn.execute('CREATE TABLE all_data (id TEXT PRIMARY KEY, date TEXT, file TEXT, joules TEXT)')
         conn.close()
     app.run(debug=True, host='0.0.0.0', port=5000)
 

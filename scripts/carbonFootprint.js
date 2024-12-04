@@ -16,7 +16,7 @@ function getCarbonFootprintSum(date) {
     
   const stmt = db.prepare(`
     SELECT SUM(CAST(carbonFootprint AS REAL)) AS daily_carbon_footprint
-    FROM measurements_data
+    FROM all_data
     WHERE date like ?
   `);
 
