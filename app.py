@@ -115,7 +115,7 @@ def generate_zone_data():
     # Query to fetch zoneID and carbonFootprint
     query = '''
         SELECT zoneID, carbonFootprint 
-        FROM measurements_data 
+        FROM all_data 
         WHERE file = ?
     '''
     cursor.execute(query, (selected_file,))
