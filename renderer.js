@@ -39,6 +39,18 @@ window.onload = function() {
     });
 };
 
+window.electronAPI.onPromptUseCase((fullID) => {
+    console.log('Received fullID:', fullID); // Debugging line
+    if (!fullID) {
+        alert('Error: fullID is undefined.');
+        return;
+    }
+    const useCase = prompt('Enter use-case for the selected file:');
+    if (useCase) {
+      window.electronAPI.sendUseCase(useCase, fullID); // Send useCase and fullID to the main process
+    }
+  });
+
 document.addEventListener("DOMContentLoaded", function() {
     populateDropdown();
 });

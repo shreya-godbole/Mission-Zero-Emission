@@ -16,12 +16,11 @@ const db = new Database(config.database.db_path);
 
 // Create the table if it doesn't exist
 db.exec(`
-    CREATE TABLE IF NOT EXISTS measurements_data (
+    CREATE TABLE IF NOT EXISTS all_data (
         id TEXT PRIMARY KEY,
         date TEXT,
         file TEXT,
-        startTime TEXT,
-        endTime TEXT,
+        runtime TEXT,
         joules TEXT,
         zoneID TEXT,
         carbonFootprint TEXT,
@@ -130,20 +129,22 @@ app.on('ready', function() {
                 });
                 useCaseWindow.loadFile('./views/useCase.html'); // HTML file for the pop-up
                 useCaseWindow.webContents.once('did-finish-load', () => {
-                    const rows = db.prepare('SELECT DISTINCT use_case FROM measurements_data').all();
+                    const rows = db.prepare('SELECT DISTINCT use_case FROM all_data').all();
                     const useCases = rows.map(row => row.use_case); // Extract use-case values
                     useCaseWindow.webContents.send('previous-use-cases', useCases);
                   });
               }
 
-              ipcMain.on('save-use-case', (event, useCase) => {
+              ipcMain.on('save-use-case', (event, data) => {
+                const { useCase, currentFullID } = data; // Destructure values
                 useCaseInput = useCase;
-                const stmt = db.prepare('UPDATE measurements_data SET use_case = ? WHERE id = ?');
+                const tempFullID = currentFullID;
+                const stmt = db.prepare('UPDATE all_data SET use_case = ? WHERE id = ?');
                 stmt.run(useCase, fullID);
-              
+                fullID = null;
                 // Close the use-case window
                 BrowserWindow.getFocusedWindow().close();
-              });
+            });
 
             javaProcess.stdout.on('data', (data) => {
                 const output = data.toString();
@@ -213,6 +214,11 @@ app.on('ready', function() {
                 }
 
                 console.log(`Start Time: ${startTime}, End Time: ${endTime}`);
+                let start = new Date(`1970-01-01T${startTime}Z`);
+                let end = new Date(`1970-01-01T${endTime}Z`);
+                let totalTimeInSeconds = (end - start) / 1000;
+                console.log(`Total running time: ${totalTimeInSeconds} seconds`);
+
                 if (code === 0 && joulesLine && fullID) { // Check if both variables are set
                     console.log(`Zone ID: ${selectedZoneId}`);
                     if(selectedZoneId !== null){
@@ -234,11 +240,12 @@ app.on('ready', function() {
                                 console.log('File Path:', selectedFilePath);
                                 console.log('Joules Line:', joulesLine);
                     
-                                const stmt = db.prepare('INSERT INTO measurements_data (id, date, file, startTime, endTime, joules, zoneID, carbonFootprint) VALUES (?, ?, ?, ?, ?, ?, ?, ?)');
-                                stmt.run(fullID, dateMatch, selectedFilePath, startTime, endTime, joulesValue, selectedZoneId, carbonFootprintOutput);
+                                const stmt = db.prepare('INSERT INTO all_data (id, date, file, runtime, joules, zoneID, carbonFootprint) VALUES (?, ?, ?, ?, ?, ?, ?)');
+                                stmt.run(fullID, dateMatch, selectedFilePath, totalTimeInSeconds, joulesValue, selectedZoneId, carbonFootprintOutput);
                                 console.log('Data successfully saved to database');
                                 MainWindow.webContents.send('java-command-result', { success: true, output: joulesLine });
                                 MainWindow.webContents.send('cf-calculation-result', {success: true, output: carbonFootprintOutput });
+                                MainWindow.webContents.send('prompt-use-case', fullID);
                             } catch (err) {
                                 console.error('Error while inserting into database:', err.message); // Log the error message
                                 MainWindow.webContents.send('java-command-result', { success: false, output: "Failed to save data to database." });

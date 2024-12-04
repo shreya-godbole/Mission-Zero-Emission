@@ -3,7 +3,15 @@ const { contextBridge, ipcRenderer } = require('electron');
 // Expose ipcRenderer methods to the renderer process
 contextBridge.exposeInMainWorld('electronAPI', {
     onUseCaseData: (callback) => ipcRenderer.on('previous-use-cases', (event, useCases) => callback(useCases)),
-    sendUseCase: (useCase) => ipcRenderer.send('save-use-case', useCase),
+    sendUseCase: (useCase, fullID) => {
+        ipcRenderer.send('save-use-case', { useCase, fullID });
+      },
+
+      onPromptUseCase: (callback) => {
+        ipcRenderer.on('prompt-use-case', (event, fullID) => {
+          callback(fullID);
+        });
+      },
 
     sendZoneSelected: (zoneId) => ipcRenderer.send('zone-id-selected', zoneId),
     
