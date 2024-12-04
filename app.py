@@ -101,6 +101,32 @@ def generate_heatmap():
     # Return the data as JSON
     return jsonify([{'date': row[0], 'joules': row[1]} for row in data])
 
+@app.route('/generate-zone-data', methods=['GET'])
+def generate_zone_data():
+    selected_file = request.args.get('file')
+
+    if not selected_file:
+        return jsonify({"error": "File name is required"}), 400
+
+    # Connect to the database
+    conn = get_db()
+    cursor = conn.cursor()
+
+    # Query to fetch zoneID and carbonFootprint
+    query = '''
+        SELECT zoneID, carbonFootprint 
+        FROM measurements_data 
+        WHERE file = ?
+    '''
+    cursor.execute(query, (selected_file,))
+    data = cursor.fetchall()
+
+    # Check if data exists
+    if not data:
+        return jsonify({"message": "No data found for the selected file"}), 404
+
+    # Return data as JSON
+    return jsonify([{'zoneID': row[0], 'carbonFootprint': row[1]} for row in data])
 
 
 if __name__ == '__main__':
