@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Carbon Footprint Comparison</title>
+    <link rel="stylesheet" href="../styles/app_comparison-style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> <!-- Include chart.js -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+
+    <div class="container">
+        <div class="sidebar" id="sidebar">
+            <button class="toggle-btn" onclick="toggleSidebar()">
+                <i class="fas fa-bars"></i>
+            </button>
+            <img src="../styles/images/MZE_logo.png" alt="Company Logo" class="logo">
+            <div class="menu-item" onclick="navigateTo('../index.html')">
+                <i class="fas fa-bolt"></i> <span class="menu-text">Energy Consumption</span>
+            </div>
+            <div class="menu-item" onclick="navigateTo('dashboard.html')">
+                <i class="fas fa-chart-line"></i> <span class="menu-text">Dashboard</span>
+            </div>
+            <div class="menu-item" onclick="navigateTo('reports.html')">
+                <i class="fas fa-file-alt"></i> <span class="menu-text">Reports</span>
+            </div>
+            <div class="menu-item" onclick="navigateTo('carbon.html')">
+                <i class="fas fa-leaf"></i> <span class="menu-text">Carbon Footprint</span>
+            </div>
+            <div class="menu-item" onclick="navigateTo('carbonintensity.html')">
+                <i class="fas fa-leaf"></i> <span class="menu-text">Analysis</span>
+            </div>
+            <div class="menu-item" onclick="navigateTo('app_comparison.html')">
+                <i class="fas fa-leaf"></i> <span class="menu-text">Compare</span>
+            </div>
+        </div>
+
+        <div class="content">
+            <h1>Compare Footprint by Application</h1>
+
+            <label for="fileSelect">Select File:</label>
+            <select id="fileSelect">
+                <option value="" disabled selected>Select a file</option>
+            </select>
+
+            <label for="runtime">Select Runtime:</label>
+            <select id="runtime" name="runtime">
+                <option value="" disabled selected>Runtime in hrs</option>
+            </select>
+
+            <label for="usecase">Select Use-case:</label>
+            <select id="usecase" name="usecase">
+                <option value="" disabled selected>Usecase</option>
+            </select>
+
+            <br><br>
+            <button id="plotButton">Plot</button>
+            <br><br>
+
+            <canvas id="heatmapChart" width="400" height="200"></canvas>
+        </div>
+
+    </div>
+
+    <script>
+        const backendURL = "http://127.0.0.1:5000"; // Backend URL
+
+        // DOM Elements
+        const fileSelect = document.getElementById("fileSelect");
+        const runtimeSelect = document.getElementById("runtime");
+        const usecaseSelect = document.getElementById("usecase");
+        const plotButton = document.getElementById("plotButton");
+        const ctx = document.getElementById("heatmapChart").getContext("2d");
+
+        // Chart instance
+        let heatmapChart;
+
+        // Fetch available files and populate dropdown
+        async function fetchFiles() {
+            try {
+                const response = await fetch(`${backendURL}/fetch-files`);
+                const files = await response.json();
+                files.forEach(file => {
+                    const option = document.createElement("option");
+                    option.value = file;
+                    option.textContent = file;
+                    fileSelect.appendChild(option);
+                });
+            } catch (error) {
+                console.error("Error fetching files:", error);
+            }
+        }
+
+        async function fetchRuntimes() {
+            try {
+                const response = await fetch(`${backendURL}/fetch-runtimes`);
+                const runtimes = await response.json();
+                runtimes.forEach(runtime => {
+                    const option = document.createElement("option");
+                    option.value = runtime;
+                    option.textContent = runtime;
+                    runtimeSelect.appendChild(option);
+                });
+            } catch (error) {
+                console.error("Error fetching runtimes:", error);
+            }
+        }
+
+        async function fetchUsecases() {
+            try {
+                const response = await fetch(`${backendURL}/fetch-usecases`);
+                const usecases = await response.json();
+                usecases.forEach(usecase => {
+                    const option = document.createElement("option");
+                    option.value = usecase;
+                    option.textContent = usecase;
+                    usecaseSelect.appendChild(option);
+                });
+            } catch (error) {
+                console.error("Error fetching runtimes:", error);
+            }
+        }
+
+        // // Fetch heatmap data for the selected file and date range
+        // async function fetchHeatmapData(fileName, startDate, endDate) {
+        //     try {
+        //         const response = await fetch(`${backendURL}/generate-heatmap?file=${fileName}&startDate=${startDate}&endDate=${endDate}`);
+        //         const data = await response.json();
+        //         return data;
+        //     } catch (error) {
+        //         console.error("Error fetching heatmap data:", error);
+        //     }
+        // }
+
+        // // Generate heatmap chart
+        // function generateHeatmap(data) {
+        //     if (!data || data.length === 0) {
+        //         alert("No data available for the selected range.");
+        //         return;
+        //     }
+
+        //     // Extract labels (dates) and values (joules)
+        //     const labels = data.map(item => item.date);
+        //     const values = data.map(item => item.joules);
+
+        //     console.log("Labels:", labels);
+        //     console.log("Values:", values);
+
+        //     // Destroy previous chart if it exists
+        //     if (heatmapChart) {
+        //         heatmapChart.destroy();
+        //     }
+
+        //     // Create new chart
+        //     heatmapChart = new Chart(ctx, {
+        //         type: "bar",
+        //         data: {
+        //             labels: labels,
+        //             datasets: [
+        //                 {
+        //                     label: "Energy Consumption (Joules)",
+        //                     data: values,
+        //                     backgroundColor: values.map(value =>
+        //                         // Adjust color mapping: Red for higher values, Green for lower
+        //                         `rgba(${Math.min(value * 10, 255)}, ${255 - Math.min(value * 10, 255)}, 0, 0.7)`
+        //                     ),
+        //                     borderColor: "rgba(255, 99, 132, 1)",
+        //                     borderWidth: 1,
+        //                 }
+        //             ]
+        //         },
+        //         options: {
+        //             plugins: {
+        //                 datalabels: {
+        //                     color: "#000",
+        //                     align: "end",
+        //                     anchor: "end",
+        //                     formatter: value => `${value.toFixed(2)} J`
+        //                 }
+        //             },
+        //             responsive: true,
+        //             scales: {
+        //                 x: {
+        //                     title: {
+        //                         display: true,
+        //                         text: "Date"
+        //                     }
+        //                 },
+        //                 y: {
+        //                     beginAtZero: true,
+        //                     title: {
+        //                         display: true,
+        //                         text: "Energy (Joules)"
+        //                     }
+        //                 }
+        //             },
+        //             interaction: {
+        //                 mode: "index",
+        //                 intersect: false
+        //             },
+        //             maintainAspectRatio: true
+        //         }
+        //     });
+        // }
+
+
+        // // Handle plot button click
+        // plotButton.addEventListener("click", async () => {
+        //     const selectedFile = fileSelect.value;
+        //     const startDate = startDateInput.value;
+        //     const endDate = endDateInput.value;
+
+        //     if (selectedFile && startDate && endDate) {
+        //         const heatmapData = await fetchHeatmapData(selectedFile, startDate, endDate);
+        //         generateHeatmap(heatmapData);
+        //     } else {
+        //         alert("Please select a file and a valid date range.");
+        //     }
+        // });
+
+        // Initialize
+        fetchFiles();     
+        fetchRuntimes();  
+        fetchUsecases();         
+        
+        //         // Initialize the app
+        //         loadFiles();
+            
+        //             function toggleSidebar() {
+        //                 const sidebar = document.getElementById('sidebar');
+        //                 sidebar.classList.toggle('collapsed');
+        //             }
+
+                    function navigateTo(path) {
+                        window.location.href = path;
+                    }
+        </script>
+</body>
+</html>

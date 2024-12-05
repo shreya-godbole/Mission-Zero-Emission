@@ -21,17 +21,32 @@ def get_db():
 def fetch_files():
     conn = get_db()
     cursor = conn.cursor()
-    cursor.execute('SELECT DISTINCT file FROM all_data')
+    cursor.execute('SELECT DISTINCT file FROM mock_data')
     files = cursor.fetchall()
     return jsonify([file['file'] for file in files])
 
-@app.route('/fetch-dates', methods=['GET'])
-def fetch_dates():
+@app.route('/fetch-runtimes', methods=['GET'])
+def fetch_runtimes():
     conn = get_db()
     cursor = conn.cursor()
-    cursor.execute('SELECT DISTINCT date FROM all_data')
-    dates = cursor.fetchall()
-    return jsonify([date['date'] for date in dates])
+    cursor.execute('SELECT DISTINCT runtime FROM mock_data')
+    runtimes = [float(row['runtime']) for row in cursor.fetchall()]  # Convert to float
+    # Group runtimes into ranges (0-1, 1-2, ..., 4-5)
+    range_dict = {f"{i}-{i+1}": False for i in range(6)}  # Ranges up to 5
+    for runtime in runtimes:
+        range_key = f"{int(runtime)}-{int(runtime)+1}"
+        if range_key in range_dict:
+            range_dict[range_key] = True  # Mark as available if in range
+    available_ranges = [range_key for range_key, exists in range_dict.items() if exists]
+    return jsonify(available_ranges)
+
+@app.route('/fetch-usecases', methods=['GET'])
+def fetch_usecases():
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute('SELECT DISTINCT use_case FROM mock_data')
+    usecases = cursor.fetchall()
+    return jsonify([usecase['usecase'] for usecase in usecases])
 
 @app.route('/fetch-graph-data', methods=['GET'])
 def fetch_graph_data():
@@ -44,7 +59,7 @@ def fetch_graph_data():
 
     conn = get_db()
     cursor = conn.cursor()
-    cursor.execute('SELECT date, joules FROM all_data WHERE file=? AND date LIKE ?', (selected_file, formatted_date + '%'))
+    cursor.execute('SELECT date, joules FROM mock_data WHERE file=? AND date LIKE ?', (selected_file, formatted_date + '%'))
     data = cursor.fetchall()
 
     return jsonify([{'date': row[0], 'joules': row[1]} for row in data])
@@ -80,7 +95,7 @@ def generate_heatmap():
     # Log the query
     query = '''
         SELECT date, joules 
-        FROM all_data 
+        FROM mock_data 
         WHERE file = ? AND date BETWEEN ? AND ?
     '''
     print(f"Executing query: {query} with params ({selected_file}, {formatted_startdate}, {formatted_enddate})")
@@ -115,7 +130,7 @@ def generate_zone_data():
     # Query to fetch zoneID and carbonFootprint
     query = '''
         SELECT zoneID, carbonFootprint 
-        FROM all_data 
+        FROM mock_data 
         WHERE file = ?
     '''
     cursor.execute(query, (selected_file,))
@@ -132,7 +147,7 @@ def generate_zone_data():
 if __name__ == '__main__':
     if not os.path.exists(DATABASE):
         conn = sqlite3.connect(DATABASE)
-        conn.execute('CREATE TABLE all_data (id TEXT PRIMARY KEY, date TEXT, file TEXT, joules TEXT)')
+        conn.execute('CREATE TABLE mock_data (id TEXT PRIMARY KEY, date TEXT, file TEXT, joules TEXT)')
         conn.close()
     app.run(debug=True, host='0.0.0.0', port=5000)
 
