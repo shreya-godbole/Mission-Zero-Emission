@@ -53,6 +53,13 @@ def fetch_files():
     
 #     return jsonify([usecase['use_case'] for usecase in usecases])
     
+@app.route('/fetch-usecases', methods=['GET'])
+def fetch_usecases():
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute('SELECT DISTINCT use_case FROM mock_data')
+    usecases = cursor.fetchall()
+    return jsonify([usecase['use_case'] for usecase in usecases]) 
 
 @app.route('/fetch-graph-data', methods=['GET'])
 def fetch_graph_data():
@@ -106,6 +113,43 @@ def generate_heatmap():
 
     return jsonify([{'date': row[0], 'joules': row[1]} for row in data])
 
+@app.route('/generate-heatmap-usecase', methods=['GET'])
+def generate_heatmap_usecase():
+    selected_usecase = request.args.get('usecase')
+    selected_runtime_lower = request.args.get('runtime_lower')
+    selected_runtime_upper = request.args.get('runtime_upper')
+
+    if not selected_usecase or not selected_runtime_lower:
+        return jsonify({"error": "Runtime and use-case are required"}), 400
+    
+    # Connect to the database
+    conn = get_db()
+    cursor = conn.cursor()
+
+    # Log the query
+    query = '''
+        SELECT file, AVG(carbonFootprint) AS avg_carbon_footprint
+        FROM mock_data 
+        WHERE use_case = ? AND runtime BETWEEN ? AND ?
+        GROUP BY file;
+        '''
+    print(f"Executing query: {query} with params ({selected_usecase}, {selected_runtime_lower}, {selected_runtime_upper})")
+
+    # Execute the query to fetch data based on date range
+    cursor.execute(query, (selected_usecase, selected_runtime_lower, selected_runtime_upper))
+
+    # Fetch results
+    results = cursor.fetchall()
+    data = [{'file': row['file'], 'carbon_footprint': row['avg_carbon_footprint']} for row in results]
+
+    # Log the fetched data
+    print(f"Fetched data: {data}")
+
+    # Check if data exists
+    if not data:
+        return jsonify({"message": "No data found for the selected range"}), 404
+
+    return jsonify(data)
 
 @app.route('/generate-zone-data', methods=['GET'])
 def generate_zone_data():

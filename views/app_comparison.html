@@ -39,24 +39,23 @@
         <div class="content">
             <h1>Compare Footprint by Application</h1>
 
-            <label for="fileSelect">Select File:</label>
-            <select id="fileSelect">
-                <option value="" disabled selected>Select a file</option>
-            </select>
+            <div class="select-container">
+            <div class = "runtime_select"> 
+                <label for="runtime">Select Runtime</label>
+                <select id="runtime" name="runtime">
+                    <option value="" disabled selected>Runtime in hrs</option>
+                </select>
+            </div>
+            
+            <div class = "usecase_select"> 
+                <label for="usecase">Select Use Case</label>
+                <select id="usecase" name="usecase">
+                    <option value="" disabled selected>Usecase</option>
+                </select>
+                </div>
+            </div>
 
-            <label for="runtime">Select Runtime:</label>
-            <select id="runtime" name="runtime">
-                <option value="" disabled selected>Runtime in hrs</option>
-            </select>
-
-            <label for="usecase">Select Use-case:</label>
-            <select id="usecase" name="usecase">
-                <option value="" disabled selected>Usecase</option>
-            </select>
-
-            <br><br>
             <button id="plotButton">Plot</button>
-            <br><br>
 
             <canvas id="heatmapChart" width="400" height="200"></canvas>
         </div>
@@ -75,22 +74,6 @@
 
         // Chart instance
         let heatmapChart;
-
-        // Fetch available files and populate dropdown
-        async function fetchFiles() {
-            try {
-                const response = await fetch(`${backendURL}/fetch-files`);
-                const files = await response.json();
-                files.forEach(file => {
-                    const option = document.createElement("option");
-                    option.value = file;
-                    option.textContent = file;
-                    fileSelect.appendChild(option);
-                });
-            } catch (error) {
-                console.error("Error fetching files:", error);
-            }
-        }
 
         async function fetchRuntimes() {
             try {
@@ -118,119 +101,116 @@
                     usecaseSelect.appendChild(option);
                 });
             } catch (error) {
-                console.error("Error fetching runtimes:", error);
+                console.error("Error fetching usecases:", error);
             }
         }
 
-        // // Fetch heatmap data for the selected file and date range
-        // async function fetchHeatmapData(fileName, startDate, endDate) {
-        //     try {
-        //         const response = await fetch(`${backendURL}/generate-heatmap?file=${fileName}&startDate=${startDate}&endDate=${endDate}`);
-        //         const data = await response.json();
-        //         return data;
-        //     } catch (error) {
-        //         console.error("Error fetching heatmap data:", error);
-        //     }
-        // }
+        // Fetch heatmap data for the selected file and date range
+        async function fetchHeatmapData(usecase, lower, upper) {
+            try {
+                console.log(`${backendURL}/generate-heatmap-usecase?usecase=${usecase}&runtime_lower=${lower}&runtime_upper=${upper}`);
+                const response = await fetch(`${backendURL}/generate-heatmap-usecase?usecase=${usecase}&runtime_lower=${lower}&runtime_upper=${upper}`);
+                const data = await response.json();
+                return data;
+            } catch (error) {
+                console.error("Error fetching heatmap data:", error);
+            }
+        }
 
-        // // Generate heatmap chart
-        // function generateHeatmap(data) {
-        //     if (!data || data.length === 0) {
-        //         alert("No data available for the selected range.");
-        //         return;
-        //     }
+        // Generate heatmap chart
+        function generateHeatmap(data) {
+            if (!data || data.length === 0 || data.message) { // Also check for API error message
+                alert("No data available or invalid response.");
+                return;
+            }
 
-        //     // Extract labels (dates) and values (joules)
-        //     const labels = data.map(item => item.date);
-        //     const values = data.map(item => item.joules);
+            //Extract labels (dates) and values (joules)
+            const labels = data.map(item => item.file);
+            const values = data.map(item => item.carbon_footprint);
 
-        //     console.log("Labels:", labels);
-        //     console.log("Values:", values);
+            console.log("Labels:", labels);
+            console.log("Values:", values);
 
-        //     // Destroy previous chart if it exists
-        //     if (heatmapChart) {
-        //         heatmapChart.destroy();
-        //     }
+            // Destroy previous chart if it exists
+            if (heatmapChart) {
+                heatmapChart.destroy();
+            }
 
-        //     // Create new chart
-        //     heatmapChart = new Chart(ctx, {
-        //         type: "bar",
-        //         data: {
-        //             labels: labels,
-        //             datasets: [
-        //                 {
-        //                     label: "Energy Consumption (Joules)",
-        //                     data: values,
-        //                     backgroundColor: values.map(value =>
-        //                         // Adjust color mapping: Red for higher values, Green for lower
-        //                         `rgba(${Math.min(value * 10, 255)}, ${255 - Math.min(value * 10, 255)}, 0, 0.7)`
-        //                     ),
-        //                     borderColor: "rgba(255, 99, 132, 1)",
-        //                     borderWidth: 1,
-        //                 }
-        //             ]
-        //         },
-        //         options: {
-        //             plugins: {
-        //                 datalabels: {
-        //                     color: "#000",
-        //                     align: "end",
-        //                     anchor: "end",
-        //                     formatter: value => `${value.toFixed(2)} J`
-        //                 }
-        //             },
-        //             responsive: true,
-        //             scales: {
-        //                 x: {
-        //                     title: {
-        //                         display: true,
-        //                         text: "Date"
-        //                     }
-        //                 },
-        //                 y: {
-        //                     beginAtZero: true,
-        //                     title: {
-        //                         display: true,
-        //                         text: "Energy (Joules)"
-        //                     }
-        //                 }
-        //             },
-        //             interaction: {
-        //                 mode: "index",
-        //                 intersect: false
-        //             },
-        //             maintainAspectRatio: true
-        //         }
-        //     });
-        // }
+            // Create new chart
+            heatmapChart = new Chart(ctx, {
+                type: "bar",
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: "Carbon Footprint (grams)",
+                            data: values,
+                            backgroundColor: values.map(value =>
+                                // Adjust color mapping: Red for higher values, Green for lower
+                                `rgba(${Math.min(value * 10, 255)}, ${255 - Math.min(value * 10, 255)}, 0, 0.7)`
+                            ),
+                            borderColor: "rgba(255, 99, 132, 1)",
+                            borderWidth: 1,
+                        }
+                    ]
+                },
+                options: {
+                    plugins: {
+                        datalabels: {
+                            color: "#000",
+                            align: "end",
+                            anchor: "end",
+                            formatter: value => `${value.toFixed(2)} J`
+                        }
+                    },
+                    responsive: true,
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: "Application"
+                            }
+                        },
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: "Carbon Footprint"
+                            }
+                        }
+                    },
+                    interaction: {
+                        mode: "index",
+                        intersect: false
+                    },
+                    maintainAspectRatio: true
+                }
+            });
+        }
 
 
-        // // Handle plot button click
-        // plotButton.addEventListener("click", async () => {
-        //     const selectedFile = fileSelect.value;
-        //     const startDate = startDateInput.value;
-        //     const endDate = endDateInput.value;
+        // Handle plot button click
+        plotButton.addEventListener("click", async () => {
+            const selectedRange = runtimeSelect.value;
+            const selectedUsecase = usecaseSelect.value;
+            const [lower, upper] = selectedRange.split('-').map(Number);
 
-        //     if (selectedFile && startDate && endDate) {
-        //         const heatmapData = await fetchHeatmapData(selectedFile, startDate, endDate);
-        //         generateHeatmap(heatmapData);
-        //     } else {
-        //         alert("Please select a file and a valid date range.");
-        //     }
-        // });
+            if (selectedUsecase && selectedRange) {
+                const heatmapData = await fetchHeatmapData(selectedUsecase, lower, upper);
+                generateHeatmap(heatmapData);
+            } else {
+                alert("Please select a file and a valid date range.");
+            }
+        });
 
-        // Initialize
-        fetchFiles();     
+        // Initialize   
         fetchRuntimes();  
         fetchUsecases();         
-        
-        //         // Initialize the app
-        //         loadFiles();
             
-        //             function toggleSidebar() {
-        //                 const sidebar = document.getElementById('sidebar');
-        //                 sidebar.classList.toggle('collapsed');
-        //             }
+                    function toggleSidebar() {
+                        const sidebar = document.getElementById('sidebar');
+                        sidebar.classList.toggle('collapsed');
+                    }
 
                     function navigateTo(path) {
                         window.location.href = path;
