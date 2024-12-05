@@ -121,11 +121,9 @@ def generate_heatmap_usecase():
 
     if not selected_usecase or not selected_runtime_lower:
         return jsonify({"error": "Runtime and use-case are required"}), 400
-    
     # Connect to the database
     conn = get_db()
     cursor = conn.cursor()
-
     # Log the query
     query = '''
         SELECT file, AVG(carbonFootprint) AS avg_carbon_footprint
@@ -134,22 +132,67 @@ def generate_heatmap_usecase():
         GROUP BY file;
         '''
     print(f"Executing query: {query} with params ({selected_usecase}, {selected_runtime_lower}, {selected_runtime_upper})")
-
     # Execute the query to fetch data based on date range
     cursor.execute(query, (selected_usecase, selected_runtime_lower, selected_runtime_upper))
-
     # Fetch results
     results = cursor.fetchall()
     data = [{'file': row['file'], 'carbon_footprint': row['avg_carbon_footprint']} for row in results]
-
     # Log the fetched data
     print(f"Fetched data: {data}")
-
     # Check if data exists
     if not data:
         return jsonify({"message": "No data found for the selected range"}), 404
-
     return jsonify(data)
+
+
+@app.route('/generate-heatmap-timeline', methods=['GET'])
+def generate_heatmap_timeline():
+    selected_file = request.args.get('file')
+
+    if not selected_file:
+        return jsonify({"error": "File selection is required"}), 400
+    
+    # Connect to the database
+    conn = get_db()
+    cursor = conn.cursor()
+    
+    # SQL query to fetch data
+    query = '''
+        SELECT 
+            strftime('%m', SUBSTR(date, 7, 4) || '-' || SUBSTR(date, 4, 2) || '-' || SUBSTR(date, 1, 2)) AS month,
+            strftime('%Y', SUBSTR(date, 7, 4) || '-' || SUBSTR(date, 4, 2) || '-' || SUBSTR(date, 1, 2)) AS year,
+            SUM(carbonFootprint) AS carbon_footprint
+        FROM 
+            mock_data
+        WHERE 
+            file = ?  
+        GROUP BY 
+            year, month
+        ORDER BY 
+            year, month;
+    '''
+    
+    print(f"Executing query: {query} with params ({selected_file})")
+    
+    # Execute the query with the correct parameter format (tuple)
+    cursor.execute(query, (selected_file,))  # Ensure a single-element tuple ends with a comma
+    
+    # Fetch results
+    results = cursor.fetchall()
+    
+    # Convert the fetched data into a list of dictionaries
+    data = [{'month': row['month'], 'year': row['year'], 'carbon_footprint': row['carbon_footprint']} for row in results]
+    
+    # Log the fetched data
+    print(f"Fetched data: {data}")
+    
+    # Check if data exists
+    if not data:
+        return jsonify({"message": "No data found for the selected file"}), 404
+    
+    return jsonify(data)
+
+
 
 @app.route('/generate-zone-data', methods=['GET'])
 def generate_zone_data():

@@ -40,22 +40,13 @@
         </div>
 
         <div class="content">
-            <h1>Compare Footprint by Application</h1>
+            <h1>Compare App Perfomance Over Time</h1>
 
             <div class="select-container">
-            <div class = "runtime_select"> 
-                <label for="runtime">Select Runtime</label>
-                <select id="runtime" name="runtime">
-                    <option value="" disabled selected>Runtime in hrs</option>
+                <label for="fileSelect">Select File:</label>
+                <select id="fileSelect">
+                    <option value="" disabled selected>Select a file</option>
                 </select>
-            </div>
-            
-            <div class = "usecase_select"> 
-                <label for="usecase">Select Use Case</label>
-                <select id="usecase" name="usecase">
-                    <option value="" disabled selected>Usecase</option>
-                </select>
-                </div>
             </div>
 
             <button id="plotButton">Plot</button>
@@ -70,49 +61,33 @@
 
         // DOM Elements
         const fileSelect = document.getElementById("fileSelect");
-        const runtimeSelect = document.getElementById("runtime");
-        const usecaseSelect = document.getElementById("usecase");
         const plotButton = document.getElementById("plotButton");
         const ctx = document.getElementById("heatmapChart").getContext("2d");
 
         // Chart instance
         let heatmapChart;
 
-        async function fetchRuntimes() {
-            try {
-                const response = await fetch(`${backendURL}/fetch-runtimes`);
-                const runtimes = await response.json();
-                runtimes.forEach(runtime => {
-                    const option = document.createElement("option");
-                    option.value = runtime;
-                    option.textContent = runtime;
-                    runtimeSelect.appendChild(option);
-                });
-            } catch (error) {
-                console.error("Error fetching runtimes:", error);
-            }
-        }
+        async function fetchFiles() {
+                    try {
+                        const response = await fetch(`${backendURL}/fetch-files`);
+                        const files = await response.json();
+                        files.forEach(file => {
+                            const option = document.createElement("option");
+                            option.value = file;
+                            option.textContent = file;
+                            fileSelect.appendChild(option);
+                        });
+                    } catch (error) {
+                        console.error("Error fetching files:", error);
+                    }
+                }
 
-        async function fetchUsecases() {
-            try {
-                const response = await fetch(`${backendURL}/fetch-usecases`);
-                const usecases = await response.json();
-                usecases.forEach(usecase => {
-                    const option = document.createElement("option");
-                    option.value = usecase;
-                    option.textContent = usecase;
-                    usecaseSelect.appendChild(option);
-                });
-            } catch (error) {
-                console.error("Error fetching usecases:", error);
-            }
-        }
 
         // Fetch heatmap data for the selected file and date range
-        async function fetchHeatmapData(usecase, lower, upper) {
+        async function fetchHeatmapData(file) {
             try {
-                console.log(`${backendURL}/generate-heatmap-usecase?usecase=${usecase}&runtime_lower=${lower}&runtime_upper=${upper}`);
-                const response = await fetch(`${backendURL}/generate-heatmap-usecase?usecase=${usecase}&runtime_lower=${lower}&runtime_upper=${upper}`);
+                console.log(`${backendURL}/generate-heatmap-timeline?file=${file}`);
+                const response = await fetch(`${backendURL}/generate-heatmap-timeline?file=${file}`);
                 const data = await response.json();
                 return data;
             } catch (error) {
@@ -128,7 +103,12 @@
             }
 
             //Extract labels (dates) and values (joules)
-            const labels = data.map(item => item.file);
+            const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+            const labels = data.map(item => {
+                const monthIndex = parseInt(item.month, 10) - 1;  // Convert month to zero-based index
+                return `${monthNames[monthIndex]}`; //-${item.year}`;  // e.g., "Jan-2024"
+            });
             const values = data.map(item => item.carbon_footprint);
 
             console.log("Labels:", labels);
@@ -171,7 +151,7 @@
                         x: {
                             title: {
                                 display: true,
-                                text: "Application"
+                                text: "Month"
                             }
                         },
                         y: {
@@ -194,12 +174,9 @@
 
         // Handle plot button click
         plotButton.addEventListener("click", async () => {
-            const selectedRange = runtimeSelect.value;
-            const selectedUsecase = usecaseSelect.value;
-            const [lower, upper] = selectedRange.split('-').map(Number);
-
-            if (selectedUsecase && selectedRange) {
-                const heatmapData = await fetchHeatmapData(selectedUsecase, lower, upper);
+            const selectedFile = fileSelect.value;
+            if (selectedFile) {
+                const heatmapData = await fetchHeatmapData(selectedFile);
                 generateHeatmap(heatmapData);
             } else {
                 alert("Please select a file and a valid date range.");
@@ -207,8 +184,7 @@
         });
 
         // Initialize   
-        fetchRuntimes();  
-        fetchUsecases();         
+        fetchFiles();         
             
                     function toggleSidebar() {
                         const sidebar = document.getElementById('sidebar');
