@@ -25,33 +25,20 @@ def fetch_files():
     files = cursor.fetchall()
     return jsonify([file['file'] for file in files])
 
-# @app.route('/fetch-runtimes', methods=['GET'])
-# def fetch_runtimes():
-#     conn = get_db()
-#     cursor = conn.cursor()
-#     cursor.execute('SELECT DISTINCT runtime FROM mock_data')
-#     runtimes = [float(row['runtime']) for row in cursor.fetchall()]  # Convert to float
-#     # Group runtimes into ranges (0-1, 1-2, ..., 4-5)
-#     range_dict = {f"{i}-{i+1}": False for i in range(6)}  # Ranges up to 5
-#     for runtime in runtimes:
-#         range_key = f"{int(runtime)}-{int(runtime)+1}"
-#         if range_key in range_dict:
-#             range_dict[range_key] = True  # Mark as available if in range
-#     available_ranges = [range_key for range_key, exists in range_dict.items() if exists]
-#     return jsonify(available_ranges)
-
-# @app.route('/fetch-usecases', methods=['GET'])
-# def fetch_usecases():
-#     conn = get_db()
-#     cursor = conn.cursor()
-#     cursor.execute('SELECT DISTINCT use_case FROM mock_data')
-#     usecases = cursor.fetchall()
-    
-#     # Check if data exists
-#     if not usecases:
-#         return jsonify({"message": "No data found for the selected file"}), 404
-    
-#     return jsonify([usecase['use_case'] for usecase in usecases])
+@app.route('/fetch-runtimes', methods=['GET'])
+def fetch_runtimes():
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute('SELECT DISTINCT runtime FROM mock_data')
+    runtimes = [float(row['runtime']) for row in cursor.fetchall()]  # Convert to float
+    # Group runtimes into ranges (0-1, 1-2, ..., 4-5)
+    range_dict = {f"{i}-{i+1}": False for i in range(6)}  # Ranges up to 5
+    for runtime in runtimes:
+        range_key = f"{int(runtime)}-{int(runtime)+1}"
+        if range_key in range_dict:
+            range_dict[range_key] = True  # Mark as available if in range
+    available_ranges = [range_key for range_key, exists in range_dict.items() if exists]
+    return jsonify(available_ranges)
     
 @app.route('/fetch-usecases', methods=['GET'])
 def fetch_usecases():
