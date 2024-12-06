@@ -36,4 +36,10 @@ contextBridge.exposeInMainWorld('electronAPI', {
     // General purpose request-response communication
     requestData: (message) => ipcRenderer.send('request-data', message),
     onSendResponse: (callback) => ipcRenderer.on('send-response', (_, data) => callback(data)),
+
+    // NEW: Calculate total carbon footprint
+    calculateTotalCF: (data) => ipcRenderer.send('calculate-total-cf', data),
+
+    // Listen for the result of the total carbon footprint calculation
+    onTotalCFResult: (callback) => ipcRenderer.on('total-cf-result', (_, data) => callback(data)),
 });

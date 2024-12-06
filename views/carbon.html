@@ -7,6 +7,7 @@
 </head>
 <body>
     <div class="container">
+        <!-- Sidebar -->
         <div class="sidebar" id="sidebar">
             <button class="toggle-btn" onclick="toggleSidebar()">
                 <i class="fas fa-bars"></i>
@@ -35,27 +36,110 @@
             </div>
         </div>
 
+        <!-- Main Content -->
         <div class="content">
             <h1>Carbon Footprint Calculator</h1>
-            <label for="country-select">Select Country:</label>
-            <select id="country-select">
-                <option value="india">India</option>
-            </select>
 
-            <label for="zone-select">Select Zone:</label>
-            <select id="zone-select">
-                <option value="india">India</option>
-            </select>
+            <!-- File Selection -->
+            <div class="input-group">
+                <label for="fileSelect">Select File:</label>
+                <select id="fileSelect">
+                    <option value="" disabled selected>Select a file</option>
+                </select>
+            </div>
 
-            <div id="carbon-result">Carbon Intensity: <span id="cf-value">-</span></div>
+            <!-- New Input Parameters -->
+            <h2>Calculate Total Carbon Footprint</h2>
+            <div class="input-group">
+                <label for="frequency">Frequency (times per week):</label>
+                <input type="number" id="frequency" min="1" placeholder="e.g., 5" required />
+            </div>
+            <div class="input-group">
+                <label for="weeks">Duration (weeks):</label>
+                <input type="number" id="weeks" min="1" placeholder="e.g., 4" required />
+            </div>
+            <button id="calculateTotalCF">Calculate Total Carbon Footprint</button>
+
+            <!-- Display Total Carbon Footprint Result -->
+            <div id="totalCFResult"></div>
         </div>
     </div>
+
+    <!-- Sidebar Toggle Script -->
     <script>
         function toggleSidebar() {
             const sidebar = document.getElementById('sidebar');
             sidebar.classList.toggle('collapsed');
         }
+
+        function navigateTo(path) {
+            window.location.href = path;
+        }
     </script>
-    <script src="../scripts/carbon.js"></script>
+
+    <!-- Scripts -->
+    <script>
+        const backendURL = "http://127.0.0.1:5000"; // Backend URL
+        const fileSelect = document.getElementById("fileSelect");
+        let selectedFilename = null; // Variable to store the selected filename
+
+        // Fetch available files and populate the dropdown
+        async function fetchFiles() {
+            try {
+                const response = await fetch(`${backendURL}/fetch-files`);
+                const files = await response.json();
+                files.forEach(file => {
+                    const option = document.createElement("option");
+                    option.value = file;
+                    option.textContent = file;
+                    fileSelect.appendChild(option);
+                });
+                // Set the initial value if the dropdown is already populated
+                if (files.length > 0) {
+                    selectedFilename = files[0]; // Set the first file as selected by default
+                    fileSelect.value = selectedFilename; // Update the dropdown to match
+                    console.log(`Default selected file: ${selectedFilename}`);
+                } else {
+                    console.log("No file selected");
+                }
+            } catch (error) {
+                console.error("Error fetching files:", error);
+            }
+        }
+
+        // Update the selected filename when the user selects a file
+        fileSelect.addEventListener("change", () => {
+            selectedFilename = fileSelect.value; // Update the variable with the selected file
+            console.log(`Selected file: ${selectedFilename}`);
+        });
+
+        // Initialize the app by fetching files
+        fetchFiles();
+
+        // Handle Calculate Carbon Footprint button click
+        document.getElementById("calculateTotalCF").addEventListener("click", () => {
+            const frequency = parseInt(document.getElementById("frequency").value, 10);
+            const weeks = parseInt(document.getElementById("weeks").value, 10);
+
+            if (isNaN(frequency) || isNaN(weeks) || frequency <= 0 || weeks <= 0) {
+                alert("Please enter valid numbers for frequency and weeks.");
+                return;
+            }
+
+            // Assuming backend calculates carbon footprint based on frequency & weeks
+            window.electronAPI.calculateTotalCF({ frequency, weeks, selectedFilename });
+         });
+    </script>
+    <script>
+        window.electronAPI.onTotalCFResult((data) => {
+    if (data.success) {
+        totalCFResult.textContent = `Carbon Footprint: ${data.output} grams`;
+    } else {
+        totalCFResult.textContent = `Error: ${data.output}`;
+    }
+    });
+    </script>
+
+    <!-- Listen for the result from the main process using ipcRenderer -->
 </body>
 </html>

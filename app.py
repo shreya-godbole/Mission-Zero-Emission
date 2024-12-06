@@ -64,6 +64,38 @@ def fetch_graph_data():
 
     return jsonify([{'date': row[0], 'joules': row[1]} for row in data])
 
+@app.route('/fetch-carbon-footprint', methods=['GET'])
+def fetch_carbon_footprint():
+    selected_file = request.args.get('file')  # Get the file from the request
+
+    # Debugging: Print selected file to ensure it's correct
+    print(f"Selected file here: {selected_file}")
+
+    # Ensure that the 'file' parameter is provided
+    if not selected_file:
+        return jsonify({"error": "File parameter is required."}), 400
+    
+    # Establish a connection to the database
+    conn = get_db()
+    cursor = conn.cursor()
+
+    # Query the carbon footprint data based on the file
+    cursor.execute('SELECT date, startTime, endTime, carbonFootprint FROM measurements_data WHERE file=?', 
+                   (selected_file,))
+
+    # Fetch the data from the database
+    data = cursor.fetchall()
+
+    # Debugging: Print the fetched data to see what was returned
+    print(f"Fetched data: {data}")
+
+    # Check if data was found
+    if not data:
+        return jsonify({"message": "No data found for the given file."}), 404
+
+    # Return the data as JSON
+    return jsonify([{'date': row[0], 'startTime': row[1], 'endTime': row[2], 'carbonFootprint': row[3]} for row in data])
+
 # Route to generate heatmap data based on file and date range
 @app.route('/generate-heatmap', methods=['GET'])
 def generate_heatmap():

@@ -6,10 +6,12 @@ const Database = require('better-sqlite3');
 const getCarbonIntensity = require('./scripts/carbonIntensity');
 const { app, BrowserWindow, ipcMain, dialog } = require('electron');
 const getCarbonFootprint = require('./scripts/carbonFootprint');
+const { Console } = require('console');
+const axios = require('axios');  // Import axios for making HTTP requests
+const backendURL = "http://127.0.0.1:5000"; // Backend URL
 
 // Load the configuration from the config.ini file
 const config = ini.parse(fs.readFileSync(path.join(__dirname, 'config.ini'), 'utf-8'));
-
 
 // Initialize the database using the path from the config file
 const db = new Database(config.database.db_path);
@@ -59,6 +61,83 @@ app.on('ready', function() {
         selectedZoneId = zoneId;
     });
 
+    ipcMain.on('calculate-total-cf', async (event, { frequency, weeks, selectedFilename }) => {
+        console.log(frequency);
+        console.log(weeks);
+        console.log(selectedFilename);
+    
+        // Check if any of the parameters are missing or invalid
+        if (!selectedFilename || !frequency || !weeks) {
+            console.error("One or more parameters are invalid or missing.");
+            event.sender.send('total-cf-result', {
+                success: false,
+                output: "Missing or invalid parameters. Please ensure 'frequency', 'weeks', and 'selectedFilename' are provided.",
+            });
+            return;
+        }
+    
+        try {
+            let data;
+    
+            try {
+                // Fetch the latest carbon footprint value for the selected file
+                const response = await axios.get(`${backendURL}/fetch-carbon-footprint?file=${selectedFilename}`);
+                console.log("received the response data: ", response.data);  // Logs only the data
+                data = response.data;  // Stores the data
+            } catch (error) {
+                console.error("Error fetching data:", error);
+                // Handle the error (e.g., show an error message to the user)
+                event.sender.send('total-cf-result', {
+                    success: false,
+                    output: "Error fetching carbon footprint data.",
+                });
+                return;
+            }
+    
+            // Proceed if data is received and contains entries
+            if (data && data.length > 0) {
+                console.log("inside if", data);
+    
+                // Sort the entries based on the date and endTime
+                const latestEntry = data.sort((a, b) => {
+                    const datetimeA = new Date(`${a.date}T${a.endTime}`);
+                    const datetimeB = new Date(`${b.date}T${b.endTime}`);
+                    return datetimeB - datetimeA; // Latest entry first
+                })[0];
+    
+                const carbonFootprintOutput = latestEntry.carbonFootprint; // Assuming carbonFootprint is a field in the response
+                console.log("Latest Carbon Footprint:", carbonFootprintOutput);
+    
+                // Calculate the total carbon footprint
+                const totalExecutions = frequency * weeks;
+                const totalCarbonFootprint = totalExecutions * carbonFootprintOutput;
+    
+                // Send the result back to the renderer process
+                event.sender.send('total-cf-result', {
+                    success: true,
+                    output: totalCarbonFootprint,
+                });
+                return totalCarbonFootprint;
+            } else {
+                // If no data is available for the selected file
+                event.sender.send('total-cf-result', {
+                    success: false,
+                    output: "No data found for the selected file.",
+                });
+                return null;
+            }
+        } catch (error) {
+            console.error("Error during calculation:", error);
+    
+            // Handle any unexpected errors
+            event.sender.send('total-cf-result', {
+                success: false,
+                output: "An unexpected error occurred during calculation.",
+            });
+            return null;
+        }
+    });
+    
     ipcMain.on('open-file-dialog', async function(event) {
         const { canceled, filePaths } = await dialog.showOpenDialog({
             properties: ['openFile']
@@ -70,8 +149,6 @@ app.on('ready', function() {
 
             event.sender.send('send-selected-file', selectedFilePath);
 
-            // const joularjxTargetPath = 'C:\\joularjx\\target';
-            // const agentPath = path.join(joularjxTargetPath, 'joularjx-3.0.0.jar');
             const agentPath = joularjxTargetPath;
             let javaArgs = [];
 
@@ -79,7 +156,7 @@ app.on('ready', function() {
                 javaArgs = ['--enable-preview', `-javaagent:${agentPath}`, '-jar', selectedFilePath];
             } else if(fileExtension === '.java'){
                 javaArgs = [`-javaagent:${agentPath}`, selectedFilePath];
-            }else {
+            } else {
                 event.sender.send('java-command-result', {
                     success: false,
                     output: "Selected file must be a .jar or a .java file."
@@ -95,8 +172,6 @@ app.on('ready', function() {
             let joulesValue;
             let startTime = null; 
             let endTime = null;
-            let programRuntime = ''
-            let useCaseInput = '';
 
             if (!InteractiveWindow) {
                 InteractiveWindow = new BrowserWindow({
@@ -141,8 +216,12 @@ app.on('ready', function() {
                 const tempFullID = currentFullID;
                 const stmt = db.prepare('UPDATE all_data SET use_case = ? WHERE id = ?');
                 stmt.run(useCase, fullID);
+<<<<<<< Updated upstream
                 fullID = null;
                 // Close the use-case window
+=======
+               // Close the use-case window
+>>>>>>> Stashed changes
                 BrowserWindow.getFocusedWindow().close();
             });
 
@@ -152,13 +231,6 @@ app.on('ready', function() {
                 MainWindow.webContents.send('java-output', output);
                 if (InteractiveWindow) {
                     InteractiveWindow.webContents.send('java-output', output);
-                }
-
-                if (!startTime) {
-                    const firstLineMatch = output.match(/\d{2}:\d{2}:\d{2}/);
-                    if (firstLineMatch) {
-                        startTime = firstLineMatch[0];
-                    }
                 }
 
                 const match = output.match(/Program consumed ([0-9]*\.?[0-9]+) joules/);
@@ -171,13 +243,6 @@ app.on('ready', function() {
             javaProcess.stderr.on('data', (data) => {
                 const errorOutput = data.toString();
                 outputBuffer += errorOutput;
-
-                if (!startTime) {
-                    const firstLineMatch = errorOutput.match(/\d{2}:\d{2}:\d{2}/);
-                    if (firstLineMatch) {
-                        startTime = firstLineMatch[0];
-                    }
-                }
 
                 const match = errorOutput.match(/Program consumed ([0-9]*\.?[0-9]+) joules/);
                 if (match) {
@@ -213,27 +278,27 @@ app.on('ready', function() {
                     endTime = lastTimeMatch[0];
                 }
 
+<<<<<<< Updated upstream
                 console.log(`Start Time: ${startTime}, End Time: ${endTime}`);
                 let start = new Date(`1970-01-01T${startTime}Z`);
                 let end = new Date(`1970-01-01T${endTime}Z`);
                 let totalTimeInSeconds = (end - start) / 1000;
                 console.log(`Total running time: ${totalTimeInSeconds} seconds`);
 
+=======
+>>>>>>> Stashed changes
                 if (code === 0 && joulesLine && fullID) { // Check if both variables are set
-                    console.log(`Zone ID: ${selectedZoneId}`);
                     if(selectedZoneId !== null){
                         getCarbonIntensity(selectedZoneId)
                         .then(carbonIntensity => {
-                            // Use carbonIntensity value in your logic
-                            console.log(`Carbon Intensity: ${carbonIntensity}`);
                             return getCarbonFootprint(carbonIntensity, joulesValue);
                         })
                         .then(carbonFootprint => {
-                            // Use carbonFootprint value in your logic
                             carbonFootprintOutput = carbonFootprint;
                             console.log(`Carbon Footprint: ${carbonFootprintOutput} grams`);
 
                             try {
+<<<<<<< Updated upstream
                                 // Debugging output to check values before insertion
                                 console.log('Inserting into database:');
                                 console.log('ID:', fullID);
@@ -243,11 +308,15 @@ app.on('ready', function() {
                                 const stmt = db.prepare('INSERT INTO all_data (id, date, file, runtime, joules, zoneID, carbonFootprint) VALUES (?, ?, ?, ?, ?, ?, ?)');
                                 stmt.run(fullID, dateMatch, selectedFilePath, totalTimeInSeconds, joulesValue, selectedZoneId, carbonFootprintOutput);
                                 console.log('Data successfully saved to database');
+=======
+                                const stmt = db.prepare('INSERT INTO measurements_data (id, date, file, startTime, endTime, joules, zoneID, carbonFootprint) VALUES (?, ?, ?, ?, ?, ?, ?, ?)');
+                                stmt.run(fullID, dateMatch, selectedFilePath, startTime, endTime, joulesValue, selectedZoneId, carbonFootprintOutput);
+>>>>>>> Stashed changes
                                 MainWindow.webContents.send('java-command-result', { success: true, output: joulesLine });
                                 MainWindow.webContents.send('cf-calculation-result', {success: true, output: carbonFootprintOutput });
                                 MainWindow.webContents.send('prompt-use-case', fullID);
                             } catch (err) {
-                                console.error('Error while inserting into database:', err.message); // Log the error message
+                                console.error('Error while inserting into database:', err.message);
                                 MainWindow.webContents.send('java-command-result', { success: false, output: "Failed to save data to database." });
                                 MainWindow.webContents.send('cf-calculation-result', { success: false, output: "Failed to calculate carbon footprint." });
                             }
@@ -257,14 +326,15 @@ app.on('ready', function() {
                         });
                     }
                 } else {
-                    // Debugging output to understand why the insertion didn't happen
-                    console.error('Insertion failed:');
-                    console.error('Exit Code:', code);
-                    console.error('Joules Line:', joulesLine);
-                    console.error('Full ID:', fullID);
+                    console.error('Error during program execution:', outputBuffer || 'No output captured');
                     MainWindow.webContents.send('java-command-result', { success: false, output: outputBuffer || 'No output captured' });
                 }
-            });            
+                console.log("Something is happening");
+                
+            }); 
+            console.log("Something is happening1");           
         }
+        console.log("Something is happening2");
     });
 });
+// Listen for total carbon footprint calculation requests

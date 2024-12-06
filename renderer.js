@@ -1,7 +1,7 @@
 const buttonCreated = document.getElementById('upload');
 const joulesOutputDiv = document.getElementById('result');
 const cfOutputDiv = document.getElementById('cf-value');
-
+const totalCFResult = document.getElementById('totalCFResult');
 // Open file dialog when the button is clicked
 buttonCreated.addEventListener('click', () => {
     window.electronAPI.sendOpenFileDialog();
@@ -53,7 +53,7 @@ window.electronAPI.onPromptUseCase((fullID) => {
 
 document.addEventListener("DOMContentLoaded", function() {
     populateDropdown();
-});
+ });
 
 function populateDropdown() {
     const url = 'https://api.electricitymap.org/v3/zones';
