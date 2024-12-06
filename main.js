@@ -82,7 +82,7 @@ app.on('ready', function() {
             try {
                 // Fetch the latest carbon footprint value for the selected file
                 const response = await axios.get(`${backendURL}/fetch-carbon-footprint?file=${selectedFilename}`);
-                console.log("received the response data: ", response.data);  // Logs only the data
+                //console.log("received the response data: ", response.data);  // Logs only the data
                 data = response.data;  // Stores the data
             } catch (error) {
                 console.error("Error fetching data:", error);
@@ -216,12 +216,8 @@ app.on('ready', function() {
                 const tempFullID = currentFullID;
                 const stmt = db.prepare('UPDATE all_data SET use_case = ? WHERE id = ?');
                 stmt.run(useCase, fullID);
-<<<<<<< Updated upstream
                 fullID = null;
                 // Close the use-case window
-=======
-               // Close the use-case window
->>>>>>> Stashed changes
                 BrowserWindow.getFocusedWindow().close();
             });
 
@@ -278,15 +274,12 @@ app.on('ready', function() {
                     endTime = lastTimeMatch[0];
                 }
 
-<<<<<<< Updated upstream
                 console.log(`Start Time: ${startTime}, End Time: ${endTime}`);
                 let start = new Date(`1970-01-01T${startTime}Z`);
                 let end = new Date(`1970-01-01T${endTime}Z`);
                 let totalTimeInSeconds = (end - start) / 1000;
                 console.log(`Total running time: ${totalTimeInSeconds} seconds`);
 
-=======
->>>>>>> Stashed changes
                 if (code === 0 && joulesLine && fullID) { // Check if both variables are set
                     if(selectedZoneId !== null){
                         getCarbonIntensity(selectedZoneId)
@@ -298,7 +291,6 @@ app.on('ready', function() {
                             console.log(`Carbon Footprint: ${carbonFootprintOutput} grams`);
 
                             try {
-<<<<<<< Updated upstream
                                 // Debugging output to check values before insertion
                                 console.log('Inserting into database:');
                                 console.log('ID:', fullID);
@@ -308,10 +300,6 @@ app.on('ready', function() {
                                 const stmt = db.prepare('INSERT INTO all_data (id, date, file, runtime, joules, zoneID, carbonFootprint) VALUES (?, ?, ?, ?, ?, ?, ?)');
                                 stmt.run(fullID, dateMatch, selectedFilePath, totalTimeInSeconds, joulesValue, selectedZoneId, carbonFootprintOutput);
                                 console.log('Data successfully saved to database');
-=======
-                                const stmt = db.prepare('INSERT INTO measurements_data (id, date, file, startTime, endTime, joules, zoneID, carbonFootprint) VALUES (?, ?, ?, ?, ?, ?, ?, ?)');
-                                stmt.run(fullID, dateMatch, selectedFilePath, startTime, endTime, joulesValue, selectedZoneId, carbonFootprintOutput);
->>>>>>> Stashed changes
                                 MainWindow.webContents.send('java-command-result', { success: true, output: joulesLine });
                                 MainWindow.webContents.send('cf-calculation-result', {success: true, output: carbonFootprintOutput });
                                 MainWindow.webContents.send('prompt-use-case', fullID);
@@ -328,13 +316,8 @@ app.on('ready', function() {
                 } else {
                     console.error('Error during program execution:', outputBuffer || 'No output captured');
                     MainWindow.webContents.send('java-command-result', { success: false, output: outputBuffer || 'No output captured' });
-                }
-                console.log("Something is happening");
-                
+                }                
             }); 
-            console.log("Something is happening1");           
         }
-        console.log("Something is happening2");
     });
 });
-// Listen for total carbon footprint calculation requests

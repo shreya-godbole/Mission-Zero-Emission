@@ -80,21 +80,21 @@ def fetch_carbon_footprint():
     cursor = conn.cursor()
 
     # Query the carbon footprint data based on the file
-    cursor.execute('SELECT date, startTime, endTime, carbonFootprint FROM measurements_data WHERE file=?', 
+    cursor.execute('SELECT date, runtime, carbonFootprint FROM mock_data WHERE file=?', 
                    (selected_file,))
 
     # Fetch the data from the database
     data = cursor.fetchall()
 
     # Debugging: Print the fetched data to see what was returned
-    print(f"Fetched data: {data}")
+    #print(f"Fetched data: {data}")
 
     # Check if data was found
     if not data:
         return jsonify({"message": "No data found for the given file."}), 404
 
     # Return the data as JSON
-    return jsonify([{'date': row[0], 'startTime': row[1], 'endTime': row[2], 'carbonFootprint': row[3]} for row in data])
+    return jsonify([{'date': row[0], 'runtime': row[1], 'carbonFootprint': row[2]} for row in data])
 
 # Route to generate heatmap data based on file and date range
 @app.route('/generate-heatmap', methods=['GET'])
