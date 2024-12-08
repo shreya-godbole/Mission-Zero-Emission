@@ -60,7 +60,9 @@
 
             <button id="plotButton">Plot</button>
 
-            <canvas id="heatmapChart" width="400" height="200"></canvas>
+            <div id="chart-container">
+                <canvas id="heatmapChart" width="300" height="200"></canvas>
+            </div>
         </div>
 
     </div>
@@ -120,6 +122,22 @@
             }
         }
 
+        function getRandomColor() {
+            const r = Math.floor(Math.random() * 256);
+            const g = Math.floor(Math.random() * 256);
+            const b = Math.floor(Math.random() * 256);
+            return `rgba(${r}, ${g}, ${b}, 0.7)`;
+        }
+        const colors = [
+            "#FF6384", // Red
+            "#36A2EB", // Blue
+            "#FFCE56", // Yellow
+            "#4BC0C0", // Teal
+            "#9966FF", // Purple
+            "#FF9F40", // Orange
+            // Add more colors if needed
+        ];
+
         // Generate heatmap chart
         function generateHeatmap(data) {
             if (!data || data.length === 0 || data.message) { // Also check for API error message
@@ -148,10 +166,12 @@
                         {
                             label: "Carbon Footprint (grams)",
                             data: values,
-                            backgroundColor: values.map(value =>
-                                // Adjust color mapping: Red for higher values, Green for lower
-                                `rgba(${Math.min(value * 10, 255)}, ${255 - Math.min(value * 10, 255)}, 0, 0.7)`
-                            ),
+                            // backgroundColor: values.map(value =>
+                            //     // Adjust color mapping: Red for higher values, Green for lower
+                            //     `rgba(${Math.min(value * 10, 255)}, ${255 - Math.min(value * 10, 255)}, 0, 0.7)`
+                            // ),
+                            //backgroundColor: labels.map(() => getRandomColor()),
+                            backgroundColor: labels.map((_, index) => colors[index % colors.length]),
                             borderColor: "rgba(255, 99, 132, 1)",
                             borderWidth: 1,
                         }
@@ -167,21 +187,22 @@
                         }
                     },
                     responsive: true,
-                    scales: {
-                        x: {
-                            title: {
-                                display: true,
-                                text: "Application"
-                            }
-                        },
-                        y: {
-                            beginAtZero: true,
-                            title: {
-                                display: true,
-                                text: "Carbon Footprint"
-                            }
-                        }
-                    },
+                    maintainAspectRatio: false,
+                    // scales: {
+                    //     x: {
+                    //         title: {
+                    //             display: false,
+                    //             text: "Application"
+                    //         }
+                    //     },
+                    //     y: {
+                    //         beginAtZero: true,
+                    //         title: {
+                    //             display: false,
+                    //             text: "Carbon Footprint"
+                    //         }
+                    //     }
+                    // },
                     interaction: {
                         mode: "index",
                         intersect: false

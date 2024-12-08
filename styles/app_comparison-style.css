@@ -210,3 +210,8 @@ button:hover {
 .toggle-btn:hover {
     transform: rotate(90deg); /* Rotate on hover for effect */
 }
+
+#chart-container {
+    width: 400px;
+    height: 400px;
+}
