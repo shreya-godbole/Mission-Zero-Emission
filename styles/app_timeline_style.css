@@ -160,6 +160,7 @@ button:hover {
 .sidebar.collapsed .logo {
     opacity: 0;
     height: 0;
+    padding:30px;
 }
 
 .menu-item {
@@ -209,4 +210,26 @@ button:hover {
 
 .toggle-btn:hover {
     transform: rotate(90deg); /* Rotate on hover for effect */
+}
+.back-button {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    padding: 8px 16px;
+    background: #4a6173;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: 0.3s;
+}
+
+.back-button:hover {
+    background: #5271a0;
+    transform: scale(1.05);
+}
+
+.back-button:active {
+    background: #3a4f67;
 }

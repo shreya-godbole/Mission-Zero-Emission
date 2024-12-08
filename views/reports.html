@@ -19,10 +19,16 @@
             <div class="menu-item" onclick="navigateTo('../index.html')">
                 <i class="fas fa-bolt"></i> <span class="menu-text">Energy Consumption</span>
             </div>
-            <div class="menu-item" onclick="navigateTo('dashboard.html')">
+            <div class="menu-item" onclick="navigateTo('card.html')">
                 <i class="fas fa-chart-line"></i> <span class="menu-text">Dashboard</span>
             </div>
-            <div class="menu-item" onclick="navigateTo('reports.html')">
+            <div class="menu-item" onclick="navigateTo('dashboard.html')">
+                <i class="fas fa-file-alt"></i> <span class="menu-text">Reports</span>
+            </div>
+            <div class="menu-item" onclick="navigateTo('about.html')">
+                <i class="fas fa-leaf"></i> <span class="menu-text">About</span>
+            </div>
+            <!-- <div class="menu-item" onclick="navigateTo('reports.html')">
                 <i class="fas fa-file-alt"></i> <span class="menu-text">Reports</span>
             </div>
             <div class="menu-item" onclick="navigateTo('carbon.html')">
@@ -36,11 +42,11 @@
             </div>
             <div class="menu-item" onclick="navigateTo('app_timeline.html')">
                 <i class="fas fa-leaf"></i> <span class="menu-text">Timeline</span>
-            </div>
+            </div> -->
         </div>
         <div class="content">
             <h1>Energy Consumption Reports</h1>
-
+            <button class="back-button" onclick="goBack()">Back</button>
             <!-- File selection -->
             <label for="fileSelect">Select File:</label>
             <select id="fileSelect">
@@ -203,6 +209,9 @@
 
                             function navigateTo(path) {
                                 window.location.href = path;
+                            }
+                            function goBack() {
+                                window.history.back();
                             }
                 </script>
             </div>
