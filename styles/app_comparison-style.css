@@ -183,6 +183,7 @@ button:hover {
 .sidebar.collapsed .logo {
     opacity: 0;
     height: 0;
+    padding: 30px;
 }
 
 .menu-item {
