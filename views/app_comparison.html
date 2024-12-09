@@ -20,7 +20,8 @@
                 <i class="fas fa-bolt"></i> <span class="menu-text">Energy Consumption</span>
             </div>
             <div class="menu-item" onclick="navigateTo('card.html')">
-                <i class="fas fa-chart-line"></i> <span class="menu-text">Dashboard</span>
+                <i class="fas fa-chart-line"></i> <span class="menu-text">Options</span>
+            </div>
             <div class="menu-item" onclick="navigateTo('dashboard.html')">
                 <i class="fas fa-file-alt"></i> <span class="menu-text">Dashboard</span>
             </div>
@@ -48,18 +49,19 @@
         <div class="content">
             <h1>Compare Footprint by Application</h1>
             <div class="select-container">
-            <div class = "runtime_select"> 
-                <label for="runtime">Select Runtime</label>
-                <select id="runtime" name="runtime">
-                    <option value="" disabled selected>Runtime in hrs</option>
-                </select>
+                <div class = "runtime_select"> 
+                    <label for="runtime">Select Runtime</label>
+                    <select id="runtime" name="runtime">
+                        <option value="" disabled selected>Runtime in hrs</option>
+                    </select>
+                </div>
             </div>
-            
-            <div class = "usecase_select"> 
-                <label for="usecase">Select Use Case</label>
-                <select id="usecase" name="usecase">
-                    <option value="" disabled selected>Usecase</option>
-                </select>
+            <div class="select-container">
+                <div class = "usecase_select"> 
+                    <label for="usecase">Select Use Case</label>
+                    <select id="usecase" name="usecase">
+                        <option value="" disabled selected>Usecase</option>
+                    </select>
                 </div>
             </div>
 

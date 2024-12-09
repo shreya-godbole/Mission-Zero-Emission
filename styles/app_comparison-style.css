@@ -1,3 +1,26 @@
+.back-button {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    padding: 8px 16px;
+    background: #4a6173;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: 0.3s;
+}
+
+.back-button:hover {
+    background: #5271a0;
+    transform: scale(1.05);
+}
+
+.back-button:active {
+    background: #3a4f67;
+}
+
 body {
     font-family: 'Roboto', sans-serif;
     display: flex;
@@ -82,7 +105,7 @@ h1 {
 }
 
 label {
-    margin-right: 5px; 
+    margin-right: 10px; 
     font-size: 1.2rem;
     font-weight: bold;
     color: #4a4a4a;
