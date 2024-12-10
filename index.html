@@ -11,7 +11,6 @@
             <button class="toggle-btn" onclick="toggleSidebar()">
                 <i class="fas fa-bars"></i>
             </button>
-            <img src="./styles/images/MZE_logo.png" alt="Company Logo" class="logo">
             <div class="menu-item" onclick="navigateTo('index.html')">
                 <i class="fas fa-bolt"></i> <span class="menu-text">Energy Consumption</span>
             </div>
@@ -23,47 +22,48 @@
             </div>
             <div class="menu-item" onclick="navigateTo('./views/about.html')">
                 <i class="fas fa-leaf"></i> <span class="menu-text">About</span>
-            </div>
-            <!-- <div class="menu-item" onclick="navigateTo('./views/dashboard.html')">
-                <i class="fas fa-chart-line"></i> <span class="menu-text">Dashboard</span>
-            </div>
-            <div class="menu-item" onclick="navigateTo('./views/reports.html')">
-                <i class="fas fa-file-alt"></i> <span class="menu-text">Reports</span>
-            </div>
-            <div class="menu-item" onclick="navigateTo('./views/carbon.html')">
-                <i class="fas fa-leaf"></i> <span class="menu-text">Carbon Footprint</span>
-            </div>
-            <div class="menu-item" onclick="navigateTo('./views/carbonintensity.html')">
-                <i class="fas fa-leaf"></i> <span class="menu-text">Analysis</span>
-            </div>
-            <div class="menu-item" onclick="navigateTo('./views/app_comparison.html')">
-                <i class="fas fa-leaf"></i> <span class="menu-text">Compare</span>
-            </div>
-            <div class="menu-item" onclick="navigateTo('./views/app_timeline.html')">
-                <i class="fas fa-leaf"></i> <span class="menu-text">Timeline</span>
-            </div> -->
+            </div>   
         </div>
+        
         <div class="content-container">
-            <h1>Mission Zero Emission</h1>
-            <div class="content">
-                <button id="upload">Upload File</button>
-                <div id="file-path">Select Java File To Measure Energy Consumption</div>
-                <div id="result"></div>
+            <div class="top-line">
+                <div class="top-line-content">
+                    <img src="./styles/images/MZE_logo.png" alt="Logo" class="top-line-logo">
+                    <h1>Mission Zero Emission</h1>
+                </div>
             </div>
-
             <div class="cf-content">
-                <label for="country-select">Select Location:</label>
+                <label for="country-select">Select your Location to see how much 
+                    carbon footprint your program  generates</label>
                 <select id="country-select">
                     <option value="india">India</option>
                 </select>
+            </div>
+
+            <div class="content">
+                <div id="file-path">Select A Java Program to see how much Energy it Consumes!</div>
+                <button id="upload">Upload File</button>
+            </div>
+
+            <div class="result-box">
                 <div id="cf-value"></div>
+                <div id="result"></div>
             </div>
         </div>
     </div>
     <script>
         function toggleSidebar() {
             const sidebar = document.getElementById('sidebar');
+            const topLine = document.querySelector('.top-line');
             sidebar.classList.toggle('collapsed');
+
+            if (sidebar.classList.contains('collapsed')) {
+                contentContainer.style.marginLeft = '50px';
+                contentContainer.style.width = 'calc(100% - 50px)';
+            } else {
+                contentContainer.style.marginLeft = '250px';
+                contentContainer.style.width = 'calc(100% - 250px)';
+            }
         }
     </script>
     <script src="renderer.js"></script>

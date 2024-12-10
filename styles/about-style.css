@@ -23,31 +23,12 @@ body::before {
     z-index: -1; /* Ensures it stays behind the content */
 }
 
-
 .container {
     display: flex;
     flex-direction: row; /* Keep sidebar and content side by side */
     height: 100vh;
 }
 
-.sidebar {
-    height: 100vh;
-    width: 250px;
-    background-color: #9e825e;
-    color: #ecf0f1;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 30px 15px;
-    box-shadow: 3px 0 10px rgba(0, 0, 0, 0.1);
-}
-
-.sidebar img {
-    width: 100px;
-    margin-bottom: 25px;
-    border-radius: 10px;
-    height: auto;
-}
 
 .menu-item {
     width: 100%;
@@ -67,7 +48,7 @@ body::before {
 
 .content-container {
     margin-left: 250px;
-    margin-top: 150px;
+    margin-top: 70px;
     flex-grow: 1;
     display: flex;
     flex-direction: column;
@@ -79,7 +60,12 @@ body::before {
     width: calc(100% - 250px);
     transition: margin-left 0.3s, width 0.3s; 
 }
-
+.content {
+    /* background: #fff; */
+    padding: 5px;
+    border-radius: 10px;
+    width: 100%;      
+}
 .top-line {
     width: 100%; 
     background-color: white; /* White background for the line */
@@ -90,10 +76,8 @@ body::before {
     border-bottom: 2px solid #d1d5db; /* Optional: Adds a border for separation */
     position: fixed; /* Relative to content-container */
     top: 0; /* Align with the top of the viewport */
-    /* z-index: 100; 
-    display: flex;
-    flex-direction: column; /* Stack logo and heading */
     align-items: center; 
+    margin-bottom: 5px;
 }   
 
 .top-line-content {
@@ -120,105 +104,66 @@ h1 {
     font-size: 2rem;
     text-align: center; /* Center the heading horizontally */
 }
-
-.content, .cf-content {
-    margin: 10px; /* Space between content sections */
-    /* background: #fff; */
-    padding: 5px;
-    border-radius: 10px;
-    width: 100%;      
-}
-
-.result-box {
-    margin: 15px; /* Space between content sections */
-    padding: 5px;
-    border-radius: 10px;
-    width: 100%; 
-}
-
-label[for="country-select"] {
-    color: white; /* Dark blue */
-}
-
-label {
-    font-size: 1.2rem;
+.back-button {
+    position: fixed;
+    bottom: 20px; /* Adjust based on the height of the top-line */
+    right: 20px;
+    background-color: white; /* Button color */
+    color: #6c757d;
+    border: none;
+    border-radius: 5px;
+    padding: 5px 10px;
+    cursor: pointer;
+    font-size: 14px;
     font-weight: bold;
-    margin-bottom: 10px;
-    color: #4a4a4a;
+    transition: background-color 0.3s, transform 0.2s;
+    margin-bottom: 0; 
 }
 
-select {
-    display: block;           /* Ensure elements stay on new lines */
-    margin: 15px auto;
+.content p {
+    margin-left: 25px;
+    margin-right: 3px;
+    color: #f8f9fa;
+    line-height: 1.5;
+    font-size: 16px;
+    text-align: justify;
+}
+
+/* Key Features List */
+.content p strong {
+    color: #ffcc00; /* Highlight key features */
+    
+}
+
+.content ul {
+    text-align: justify;
+    margin: 1px 2px;
+    padding-left: 20px;
+    color: #ffffff;
+    line-height: 1.5;
+}
+
+.content ul li {
+    margin-bottom: 1px;
+}
+
+/* Our Mission Section */
+.content .mission {
+    font-style: italic;
+    color: white; 
+    line-height: 1.5;
+}
+
+.content .mission h2{
+    margin: 1px;
+}
+
+.content{
+    color: white;
+    margin: 10px;
     padding: 10px;
-    font-size: 1rem;
-    border-radius: 5px;
-    border: 1px solid #ccc;
-    margin-bottom: 20px;
-    width: 200px;
-    background-color: #f9f9fb;
-    color: #333;
-    outline: none;
-    transition: border-color 0.3s ease;
 }
 
-select:focus {
-    border-color: #9e825e;
-}
-
-button {
-    display: block;
-    padding: 10px 20px;
-    margin: auto;
-    font-size: 16px;
-    cursor: pointer;
-    border: none;
-    background-color: white;
-    color: white;
-    border-radius: 5px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    transition: background-color 0.3s ease, box-shadow 0.3s ease;
-}
-
-button:hover {
-    background-color: #a8adc4;
-    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
-}
-
-#cf-value {
-    margin-top: 20px;
-    font-weight: bold;
-    color: white;
-    font-size: 1.1rem;
-    text-align: center;
-}
-
-#upload {
-    padding: 10px 20px;
-    font-size: 16px;
-    font-weight: bold;
-    cursor: pointer;
-    border: none;
-    background-color: white;
-    color: #33477d;
-    border-radius: 5px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    margin-top: 25px;
-    transition: background-color 0.3s ease, box-shadow 0.3 ease;
-}
-
-#upload:hover {
-    background-color: #d2e3e4;
-    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
-}
-
-#file-path, #result {
-    margin-top: 20px;
-    font-weight: bold;
-    color: white;
-    font-size: 1.1rem;
-    text-align: center;
-}
 /* Sidebar Styles */
 .sidebar {
     height: 100vh;

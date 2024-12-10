@@ -229,6 +229,13 @@ app.on('ready', function() {
                     InteractiveWindow.webContents.send('java-output', output);
                 }
 
+                if (!startTime) {
+                    const firstLineMatch = output.match(/\d{2}:\d{2}:\d{2}/);
+                    if (firstLineMatch) {
+                        startTime = firstLineMatch[0];
+                    }
+                }
+
                 const match = output.match(/Program consumed ([0-9]*\.?[0-9]+) joules/);
                 if (match) {
                     joulesLine = match[0];
@@ -239,6 +246,13 @@ app.on('ready', function() {
             javaProcess.stderr.on('data', (data) => {
                 const errorOutput = data.toString();
                 outputBuffer += errorOutput;
+
+                if (!startTime) {
+                    const firstLineMatch = errorOutput.match(/\d{2}:\d{2}:\d{2}/);
+                    if (firstLineMatch) {
+                        startTime = firstLineMatch[0];
+                    }
+                }
 
                 const match = errorOutput.match(/Program consumed ([0-9]*\.?[0-9]+) joules/);
                 if (match) {
@@ -279,7 +293,7 @@ app.on('ready', function() {
                 let end = new Date(`1970-01-01T${endTime}Z`);
                 let totalTimeInSeconds = (end - start) / 1000;
                 console.log(`Total running time: ${totalTimeInSeconds} seconds`);
-
+                
                 if (code === 0 && joulesLine && fullID) { // Check if both variables are set
                     if(selectedZoneId !== null){
                         getCarbonIntensity(selectedZoneId)

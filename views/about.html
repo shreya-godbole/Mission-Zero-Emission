@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard with Flip Cards</title>
-    <link rel="stylesheet" href="../styles/carbon-style.css">
+    <title>About</title>
+    <link rel="stylesheet" href="../styles/about-style.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
 </head>
 <body>
@@ -13,45 +13,65 @@
             <button class="toggle-btn" onclick="toggleSidebar()">
                 <i class="fas fa-bars"></i>
             </button>
-            <img src="../styles/images/MZE_logo.png" alt="Company Logo" class="logo">
             <div class="menu-item" onclick="navigateTo('../index.html')">
                 <i class="fas fa-bolt"></i> <span class="menu-text">Energy Consumption</span>
             </div>
-            <div class="menu-item" onclick="navigateTo('card.html')">
+            <div class="menu-item" onclick="navigateTo('./views/card.html')">
                 <i class="fas fa-chart-line"></i> <span class="menu-text">Options</span>
             </div>
-            <div class="menu-item" onclick="navigateTo('dashboard.html')">
+            <div class="menu-item" onclick="navigateTo('./views/dashboard.html')">
                 <i class="fas fa-file-alt"></i> <span class="menu-text">Dashboard</span>
             </div>
-            <div class="menu-item" onclick="navigateTo('about.html')">
-                <i class="fas fa-leaf"></i> <span class="menu-text">Compare</span>
+            <div class="menu-item" onclick="navigateTo('./views/about.html')">
+                <i class="fas fa-leaf"></i> <span class="menu-text">About</span>
             </div>
-            <!-- <div class="menu-item" onclick="navigateTo('reports.html')">
-                <i class="fas fa-file-alt"></i> <span class="menu-text">Reports</span>
-            </div>
-            <div class="menu-item" onclick="navigateTo('carbon.html')">
-                <i class="fas fa-leaf"></i> <span class="menu-text">Carbon Footprint</span>
-            </div>
-            <div class="menu-item" onclick="navigateTo('carbonintensity.html')">
-                <i class="fas fa-leaf"></i> <span class="menu-text">Analysis</span>
-            </div>
-            <div class="menu-item" onclick="navigateTo('app_comparison.html')">
-                <i class="fas fa-leaf"></i> <span class="menu-text">Compare</span>
-            </div>
-            <div class="menu-item" onclick="navigateTo('app_timeline.html')">
-                <i class="fas fa-leaf"></i> <span class="menu-text">Timeline</span>
-            </div> -->
         </div>
-        <div class="content">       
-            <h1>About</h1>
-            <button class="back-button" onclick="goBack()">Back</button>
-            <p></p>
+
+        <div class="content-container">   
+            <div class="top-line">
+                <div class="top-line-content">
+                    <button class="back-button" onclick="goBack()">Back</button>
+                    <img src="../styles/images/MZE_logo.png" alt="Logo" class="top-line-logo">
+                    <h1>Mission Zero Emission</h1>
+                </div>
+            </div>    
+
+            <div class="content">
+            <!-- <h1>About Mission Zero Emission</h1> -->
+            <p>
+                Welcome to <strong>Mission Zero Emission</strong>, an innovative platform designed to revolutionize how we measure and reduce the energy consumption of Java programs.
+                Our app leverages <strong>JoularJX</strong>, a powerful energy measurement tool, to monitor the energy usage of Java and JAR files. By combining this data with real-time carbon intensity information from electricity grids, we provide detailed insights into the environmental impact of software development.
+            </p>
+            <h2>Key Features:</h2>
+            <ul>
+                <li><strong>Energy Measurement:</strong> Accurately measure the energy consumed by your Java programs.</li>
+                <li><strong>Carbon Footprint Analysis:</strong> Calculate the carbon footprint based on energy consumption and regional carbon intensity.</li>
+                <li><strong>Data Visualization:</strong> Understand your impact with clear, intuitive graphs and charts.</li>
+                <li><strong>Interactive Analysis:</strong> Experiment with runtime complexities to explore how program design influences energy efficiency.</li>
+            </ul>
+            <div class="mission">
+                <h2>Our Mission</h2>
+                <p>
+                    At Mission Zero Emission, our goal is to empower developers to make sustainable choices, fostering a future where technology and the environment coexist harmoniously. By providing actionable insights, we aim to bridge the gap between software performance and ecological responsibility.
+                    Join us on this journey toward energy-efficient and eco-friendly programming!
+                </p>
+            </div>
+            </div>
         </div>
     
     <script>
         function toggleSidebar() {
             const sidebar = document.getElementById('sidebar');
+            const topLine = document.querySelector('.top-line');
             sidebar.classList.toggle('collapsed');
+
+            if (sidebar.classList.contains('collapsed')) {
+                contentContainer.style.marginLeft = '50px';
+                contentContainer.style.width = 'calc(100% - 50px)';
+            } else {
+                contentContainer.style.marginLeft = '250px';
+                contentContainer.style.width = 'calc(100% - 250px)';
+            }
         }
         function goBack() {
             window.history.back();

@@ -8,6 +8,19 @@ body {
     background: linear-gradient(to bottom, #f9f9fb, #e9ecf2);
 }
 
+#intro{
+    background-color: #fff;
+    margin: 10px;
+    padding: 10px;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    overflow-y: auto;
+    color: #4a6173;
+    font-size: 1rem;
+    text-align: center;
+    gap: 5px;
+}
+
 #output {
     flex-grow: 1;
     background-color: #fff;
