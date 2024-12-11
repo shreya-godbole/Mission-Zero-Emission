@@ -192,18 +192,14 @@ h1 {
     width: calc(100% - 50px);
 }
 
-.sidebar .logo {
-    width: 100px;
-    height: auto;
-    margin-bottom: 20px;
-    border-radius: 10px;
-    transition: opacity 0.3s;
+
+.sidebar.collapsed .menu-item {
+    justify-content: center; /* Center icons when collapsed */
+    padding-left: 0;
 }
 
-.sidebar.collapsed .logo {
-    opacity: 0;
-    height: 0;
-    padding: 10px;
+.sidebar.collapsed .menu-text {
+    display: none; /* Hide text in collapsed view */
 }
 
 .menu-item {
@@ -224,11 +220,6 @@ h1 {
     border-bottom: none;
 }
 
-.sidebar.collapsed .menu-item {
-    justify-content: center; /* Center icons when collapsed */
-    padding-left: 0;
-}
-
 .menu-item:hover {
     background-color: #9e825e;
     transform: translateX(5px);
@@ -237,10 +228,6 @@ h1 {
 .menu-item i {
     margin-right: 15px; /* Space between icon and text */
     font-size: 18px;
-}
-
-.sidebar.collapsed .menu-text {
-    display: none; /* Hide text in collapsed view */
 }
 
 /* Toggle Button */
