@@ -72,8 +72,7 @@ body {
 .content {
     flex-grow: 1;
     padding: 30px;
-    /* background: linear-gradient(to bottom, #f9f9fb, #e9ecf2); */
-    background: #F5F7E1;
+    background: linear-gradient(to bottom, #f9f9fb, #e9ecf2);
     border-left: 1px solid #d1d5db;
     color: #333;
     display: flex;
