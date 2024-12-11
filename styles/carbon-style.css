@@ -3,7 +3,7 @@
     top: 15px;
     right: 15px;
     padding: 8px 16px;
-    background: #4a6173;
+    background: #77815C;
     color: #fff;
     border: none;
     border-radius: 5px;
@@ -13,12 +13,12 @@
 }
 
 .back-button:hover {
-    background: #5271a0;
+    background: #9e825e; 
     transform: scale(1.05);
 }
 
 .back-button:active {
-    background: #3a4f67;
+    background: #77815C;
 }
 
 
@@ -37,7 +37,7 @@ body {
 .sidebar {
     height: 100vh;
     width: 250px;
-    background-color: #2c3e50;
+    background-color: #77815C;
     color: #ecf0f1;
     display: flex;
     flex-direction: column;
@@ -65,14 +65,15 @@ body {
 }
 
 .menu-item:hover {
-    background-color: #34495e;
+    background-color: #9e825e;
     transform: translateX(5px);
 }
 
 .content {
     flex-grow: 1;
     padding: 30px;
-    background: linear-gradient(to bottom, #f9f9fb, #e9ecf2);
+    /* background: linear-gradient(to bottom, #f9f9fb, #e9ecf2); */
+    background: #F5F7E1;
     border-left: 1px solid #d1d5db;
     color: #333;
     display: flex;
@@ -82,8 +83,10 @@ body {
 }
 
 h1 {
-    color: #4a6173;
-    font-size: 2rem;
+    color: #77815C;
+    font-family: "Poppins", sans-serif;
+    font-size: 3rem;
+    font-weight: 600;
     margin-bottom: 20px;
 }
 
@@ -108,7 +111,7 @@ select {
 }
 
 select:focus {
-    border-color: #4a6173;
+    border-color: #9e825e;
 }
 
 button {
@@ -116,7 +119,7 @@ button {
     font-size: 16px;
     cursor: pointer;
     border: none;
-    background-color: #4a6173;
+    background-color: #77815C;
     color: white;
     border-radius: 5px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
@@ -125,7 +128,7 @@ button {
 }
 
 button:hover {
-    background-color: #5271a0;
+    background-color: #9e825e;
     box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
 }
 
@@ -139,7 +142,7 @@ button:hover {
 .sidebar {
     height: 100vh;
     width: 250px;
-    background-color: #2c3e50;
+    background-color: #61462a;
     color: #ecf0f1;
     display: flex;
     flex-direction: column;
@@ -187,7 +190,7 @@ button:hover {
 }
 
 .menu-item:hover {
-    background-color: #34495e;
+    background-color: #9e825e;
     transform: translateX(5px);
 }
 
