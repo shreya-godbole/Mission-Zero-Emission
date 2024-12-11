@@ -27,31 +27,24 @@
             <div class="menu-item" onclick="navigateTo('about.html')">
                 <i class="fas fa-leaf"></i> <span class="menu-text">About</span>
             </div>
-            <!-- <div class="menu-item" onclick="navigateTo('reports.html')">
-                <i class="fas fa-file-alt"></i> <span class="menu-text">Reports</span>
-            </div>
-            <div class="menu-item" onclick="navigateTo('carbon.html')">
-                <i class="fas fa-leaf"></i> <span class="menu-text">Carbon Footprint</span>
-            </div>
-            <div class="menu-item" onclick="navigateTo('carbonintensity.html')">
-                <i class="fas fa-leaf"></i> <span class="menu-text">Analysis</span>
-            </div>
-            <div class="menu-item" onclick="navigateTo('app_comparison.html')">
-                <i class="fas fa-leaf"></i> <span class="menu-text">Compare</span>
-            </div>
-            <div class="menu-item" onclick="navigateTo('app_timeline.html')">
-                <i class="fas fa-leaf"></i> <span class="menu-text">Timeline</span>
-            </div> -->
         </div>
 
         <div class="content">
             <button class="back-button" onclick="goBack()">Back</button>
             <h1>Compare App Perfomance Over Time</h1>
             <div class="select-container">
-                <label for="fileSelect">Select File:</label>
+                <label for="fileSelect">Select File</label>
                 <select id="fileSelect">
                     <option value="" disabled selected>Select a file</option>
                 </select>
+            </div>
+            <div class="select-container">
+                <div class = "usecase_select"> 
+                    <label for="usecase">Select Use Case</label>
+                    <select id="usecase" name="usecase">
+                        <option value="" disabled selected>Usecase</option>
+                    </select>
+                </div>
             </div>
 
             <button id="plotButton">Plot</button>
@@ -66,6 +59,7 @@
 
         // DOM Elements
         const fileSelect = document.getElementById("fileSelect");
+        const usecaseSelect = document.getElementById("usecase");
         const plotButton = document.getElementById("plotButton");
         const ctx = document.getElementById("heatmapChart").getContext("2d");
 
@@ -73,26 +67,41 @@
         let heatmapChart;
 
         async function fetchFiles() {
-                    try {
-                        const response = await fetch(`${backendURL}/fetch-files`);
-                        const files = await response.json();
-                        files.forEach(file => {
-                            const option = document.createElement("option");
-                            option.value = file;
-                            option.textContent = file;
-                            fileSelect.appendChild(option);
-                        });
-                    } catch (error) {
-                        console.error("Error fetching files:", error);
-                    }
-                }
+            try {
+                const response = await fetch(`${backendURL}/fetch-files`);
+                const files = await response.json();
+                files.forEach(file => {
+                    const option = document.createElement("option");
+                    option.value = file;
+                    option.textContent = file;
+                    fileSelect.appendChild(option);
+                });
+            } catch (error) {
+                console.error("Error fetching files:", error);
+            }
+        }
+
+        async function fetchUsecases() {
+            try {
+                const response = await fetch(`${backendURL}/fetch-usecases`);
+                const usecases = await response.json();
+                usecases.forEach(usecase => {
+                    const option = document.createElement("option");
+                    option.value = usecase;
+                    option.textContent = usecase;
+                    usecaseSelect.appendChild(option);
+                });
+            } catch (error) {
+                console.error("Error fetching usecases:", error);
+            }
+        }
 
 
         // Fetch heatmap data for the selected file and date range
-        async function fetchHeatmapData(file) {
+        async function fetchHeatmapData(file, usecase) {
             try {
-                console.log(`${backendURL}/generate-heatmap-timeline?file=${file}`);
-                const response = await fetch(`${backendURL}/generate-heatmap-timeline?file=${file}`);
+                console.log(`${backendURL}/generate-heatmap-timeline?file=${file}&usecase=${usecase}`);
+                const response = await fetch(`${backendURL}/generate-heatmap-timeline?file=${file}&usecase=${usecase}`);
                 const data = await response.json();
                 return data;
             } catch (error) {
@@ -180,8 +189,9 @@
         // Handle plot button click
         plotButton.addEventListener("click", async () => {
             const selectedFile = fileSelect.value;
-            if (selectedFile) {
-                const heatmapData = await fetchHeatmapData(selectedFile);
+            const selectedUsecase = usecaseSelect.value;
+            if (selectedFile && selectedUsecase) {
+                const heatmapData = await fetchHeatmapData(selectedFile, selectedUsecase);
                 generateHeatmap(heatmapData);
             } else {
                 alert("Please select a file and a valid date range.");
@@ -189,19 +199,20 @@
         });
 
         // Initialize   
-        fetchFiles();         
+        fetchFiles();  
+        fetchUsecases();       
             
-                    function toggleSidebar() {
-                        const sidebar = document.getElementById('sidebar');
-                        sidebar.classList.toggle('collapsed');
-                    }
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            sidebar.classList.toggle('collapsed');
+        }
 
-                    function navigateTo(path) {
-                        window.location.href = path;
-                    }
-                    function goBack() {
-                    window.history.back();
-                }
+        function navigateTo(path) {
+            window.location.href = path;
+        }
+        function goBack() {
+        window.history.back();
+    }
         </script>
 </body>
 </html>

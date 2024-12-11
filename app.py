@@ -167,9 +167,11 @@ def generate_heatmap_usecase():
 @app.route('/generate-heatmap-timeline', methods=['GET'])
 def generate_heatmap_timeline():
     selected_file = request.args.get('file')
-
+    selected_usecase = request.args.get('usecase')
     if not selected_file:
         return jsonify({"error": "File selection is required"}), 400
+    if not selected_usecase:
+        return jsonify({"error": "Usecase selection is required"}), 400
     
     # Connect to the database
     conn = get_db()
@@ -185,16 +187,18 @@ def generate_heatmap_timeline():
             mock_data
         WHERE 
             file = ?  
+        AND
+            use_case = ?
         GROUP BY 
             year, month
         ORDER BY 
             year, month;
     '''
     
-    print(f"Executing query: {query} with params ({selected_file})")
+    print(f"Executing query: {query} with params ({selected_file, selected_usecase})")
     
     # Execute the query with the correct parameter format (tuple)
-    cursor.execute(query, (selected_file,))  # Ensure a single-element tuple ends with a comma
+    cursor.execute(query, (selected_file, selected_usecase))  # Ensure a single-element tuple ends with a comma
     
     # Fetch results
     results = cursor.fetchall()
@@ -203,7 +207,7 @@ def generate_heatmap_timeline():
     data = [{'month': row['month'], 'year': row['year'], 'carbon_footprint': row['carbon_footprint']} for row in results]
     
     # Log the fetched data
-    print(f"Fetched data: {data}")
+    #print(f"Fetched data: {data}")
     
     # Check if data exists
     if not data:

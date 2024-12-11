@@ -214,7 +214,7 @@
                 const heatmapData = await fetchHeatmapData(selectedUsecase, lower, upper);
                 generateHeatmap(heatmapData);
             } else {
-                alert("Please select a file and a valid date range.");
+                alert("Please select a file and a valid runtime range.");
             }
         });
 
@@ -222,17 +222,17 @@
         fetchRuntimes();  
         fetchUsecases();         
             
-                    function toggleSidebar() {
-                        const sidebar = document.getElementById('sidebar');
-                        sidebar.classList.toggle('collapsed');
-                    }
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            sidebar.classList.toggle('collapsed');
+        }
 
-                    function navigateTo(path) {
-                        window.location.href = path;
-                    }
-                    function goBack() {
-                    window.history.back();
-                }
+        function navigateTo(path) {
+            window.location.href = path;
+        }
+        function goBack() {
+        window.history.back();
+        }
         </script>
 </body>
 </html>
