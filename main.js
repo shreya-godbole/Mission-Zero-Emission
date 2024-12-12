@@ -61,75 +61,60 @@ app.on('ready', function() {
         selectedZoneId = zoneId;
     });
 
-    ipcMain.on('calculate-total-cf', async (event, { frequency, weeks, selectedFilename }) => {
+    ipcMain.on('calculate-total-cf', async (event, { frequency, weeks, selectedFilename, selectedUseCase }) => {
         console.log(frequency);
         console.log(weeks);
         console.log(selectedFilename);
-    
-        // Check if any of the parameters are missing or invalid
-        if (!selectedFilename || !frequency || !weeks) {
+        console.log(selectedUseCase);
+        if (!selectedFilename || !frequency || !weeks || !selectedUseCase) {
             console.error("One or more parameters are invalid or missing.");
             event.sender.send('total-cf-result', {
                 success: false,
-                output: "Missing or invalid parameters. Please ensure 'frequency', 'weeks', and 'selectedFilename' are provided.",
+                output: "Missing or invalid parameters. Please ensure 'frequency', 'weeks', 'selectedFilename', and 'selectedUseCase' are provided.",
             });
             return;
         }
-    
         try {
             let data;
-    
             try {
-                // Fetch the latest carbon footprint value for the selected file
-                const response = await axios.get(`${backendURL}/fetch-carbon-footprint?file=${selectedFilename}`);
-                //console.log("received the response data: ", response.data);  // Logs only the data
-                data = response.data;  // Stores the data
+                const response = await axios.get(`${backendURL}/fetch-carbon-footprint?file=${selectedFilename}&usecase=${selectedUseCase}`);
+                data = response.data; 
             } catch (error) {
                 console.error("Error fetching data:", error);
-                // Handle the error (e.g., show an error message to the user)
                 event.sender.send('total-cf-result', {
                     success: false,
                     output: "Error fetching carbon footprint data.",
                 });
                 return;
             }
-    
-            // Proceed if data is received and contains entries
             if (data && data.length > 0) {
-                console.log("inside if", data);
-    
-                // Sort the entries based on the date and endTime
+                console.log("Inside if", data);
                 const latestEntry = data.sort((a, b) => {
-                    const datetimeA = new Date(`${a.date}T${a.endTime}`);
-                    const datetimeB = new Date(`${b.date}T${b.endTime}`);
-                    return datetimeB - datetimeA; // Latest entry first
+                    const datetimeA = new Date(a.date);
+                    const datetimeB = new Date(b.date);
+                    return datetimeB - datetimeA; 
                 })[0];
-    
-                const carbonFootprintOutput = latestEntry.carbonFootprint; // Assuming carbonFootprint is a field in the response
+                const carbonFootprintOutput = latestEntry.carbonFootprint; 
                 console.log("Latest Carbon Footprint:", carbonFootprintOutput);
-    
-                // Calculate the total carbon footprint
                 const totalExecutions = frequency * weeks;
-                const totalCarbonFootprint = totalExecutions * carbonFootprintOutput;
-    
-                // Send the result back to the renderer process
+                const totalCarbonFootprint = (totalExecutions * carbonFootprintOutput).toFixed(4);
+                const trees = (totalCarbonFootprint * 0.000045).toFixed(4);
+                console.log("Trees", trees);
                 event.sender.send('total-cf-result', {
                     success: true,
                     output: totalCarbonFootprint,
+                    trees: trees
                 });
-                return totalCarbonFootprint;
+                return { totalCarbonFootprint, trees };
             } else {
-                // If no data is available for the selected file
                 event.sender.send('total-cf-result', {
                     success: false,
-                    output: "No data found for the selected file.",
+                    output: "No data found for the selected file and use case.",
                 });
                 return null;
             }
         } catch (error) {
             console.error("Error during calculation:", error);
-    
-            // Handle any unexpected errors
             event.sender.send('total-cf-result', {
                 success: false,
                 output: "An unexpected error occurred during calculation.",
@@ -137,6 +122,7 @@ app.on('ready', function() {
             return null;
         }
     });
+    
     
     ipcMain.on('open-file-dialog', async function(event) {
         const { canceled, filePaths } = await dialog.showOpenDialog({
