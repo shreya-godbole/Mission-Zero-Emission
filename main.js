@@ -88,7 +88,7 @@ app.on('ready', function() {
                 return;
             }
             if (data && data.length > 0) {
-                console.log("Inside if", data);
+                //console.log("Inside if", data);
                 const latestEntry = data.sort((a, b) => {
                     const datetimeA = new Date(a.date);
                     const datetimeB = new Date(b.date);
