@@ -21,12 +21,9 @@
             <div class="menu-item" onclick="navigateTo('card.html')">
                 <i class="fas fa-chart-line"></i> <span class="menu-text">Options</span>
             </div>
-            <div class="menu-item" onclick="navigateTo('dashboard.html')">
-                <i class="fas fa-file-alt"></i> <span class="menu-text">Dashboard</span>
-            </div>
             <div class="menu-item" onclick="navigateTo('carbon.html')">
-                <i class="fas fa-leaf"></i> <span class="menu-text">Carbon FootPrint</span>
-            </div>  
+                <i class="fas fa-leaf"></i> <span class="menu-text">Lifetime Carbon Emission</span>
+            </div> 
             <div class="menu-item" onclick="navigateTo('about.html')">
                 <i class="fas fa-leaf"></i> <span class="menu-text">About</span>
             </div>
@@ -79,15 +76,29 @@
                     option.textContent = file;
                     fileSelect.appendChild(option);
                 });
+                if (files.length > 0) {
+                    selectedFilename = files[0]; 
+                    fileSelect.value = selectedFilename; 
+                    console.log(`Default selected file: ${selectedFilename}`);
+                    fetchUsecases(selectedFilename);
+                    selectedUseCase = usecaseSelect.value;
+                } else {
+                    console.log("No file selected");
+                }
             } catch (error) {
                 console.error("Error fetching files:", error);
             }
         }
 
-        async function fetchUsecases() {
+        async function fetchUsecases(selectedFilename) {
+            if (!selectedFilename) {
+                console.error("No file selected to fetch use cases.");
+                return;
+            }
             try {
-                const response = await fetch(`${backendURL}/fetch-usecases`);
+                const response = await fetch(`${backendURL}/fetch-usecases-file-specific?file=${encodeURIComponent(selectedFilename)}`);
                 const usecases = await response.json();
+                usecaseSelect.innerHTML = `<option value="" disabled selected>Usecase</option>`;
                 usecases.forEach(usecase => {
                     const option = document.createElement("option");
                     option.value = usecase;
@@ -97,96 +108,112 @@
             } catch (error) {
                 console.error("Error fetching usecases:", error);
             }
-        }
+        }   
 
 
-        // Fetch heatmap data for the selected file and date range
         async function fetchHeatmapData(file, usecase) {
-            try {
-                console.log(`${backendURL}/generate-heatmap-timeline?file=${file}&usecase=${usecase}`);
-                const response = await fetch(`${backendURL}/generate-heatmap-timeline?file=${file}&usecase=${usecase}`);
-                const data = await response.json();
-                return data;
-            } catch (error) {
-                console.error("Error fetching heatmap data:", error);
-            }
-        }
+    try {
+        console.log(`${backendURL}/generate-heatmap-timeline?file=${file}&usecase=${usecase}`);
+        const response = await fetch(`${backendURL}/generate-heatmap-timeline?file=${file}&usecase=${usecase}`);
+        const data = await response.json();
+        return data;
+    } catch (error) {
+        console.error("Error fetching heatmap data:", error);
+    }
+}
 
-        // Generate heatmap chart
-        function generateHeatmap(data) {
-            if (!data || data.length === 0 || data.message) { // Also check for API error message
-                alert("No data available or invalid response.");
-                return;
-            }
+// Generate heatmap chart
+function generateHeatmap(data) {
+    if (!data || data.length === 0 || data.message) { // Also check for API error message
+        alert("No data available or invalid response.");
+        return;
+    }
 
-            //Extract labels (dates) and values (joules)
-            const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    // Check the view type
+    const viewType = data.view; // 'daily', 'weekly', or 'monthly'
+    const heatmapData = data.data; // Actual data array
 
-            const labels = data.map(item => {
-                const monthIndex = parseInt(item.month, 10) - 1;  // Convert month to zero-based index
-                return `${monthNames[monthIndex]}`; //-${item.year}`;  // e.g., "Jan-2024"
-            });
-            const values = data.map(item => item.carbon_footprint);
+    let labels, values, xAxisTitle;
 
-            console.log("Labels:", labels);
-            console.log("Values:", values);
+    if (viewType === "daily") {
+        labels = heatmapData.map(item => `Day ${item.day}`);
+        values = heatmapData.map(item => item.carbon_footprint);
+        xAxisTitle = "Days";
+    } else if (viewType === "weekly") {
+        labels = heatmapData.map(item => item.week);
+        values = heatmapData.map(item => item.carbon_footprint);
+        xAxisTitle = "Weeks";
+    } else if (viewType === "monthly") {
+        const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+        labels = heatmapData.map(item => {
+            const [year, month] = item.month.split("-");
+            const monthIndex = parseInt(month, 10) - 1;
+            return `${monthNames[monthIndex]}-${year}`; // e.g., "Jan-2024"
+        });
+        values = heatmapData.map(item => item.carbon_footprint);
+        xAxisTitle = "Months";
+    }
 
-            // Destroy previous chart if it exists
-            if (heatmapChart) {
-                heatmapChart.destroy();
-            }
+    console.log("Labels:", labels);
+    console.log("Values:", values);
 
-            // Create new chart
-            heatmapChart = new Chart(ctx, {
-                type: "bar",
-                data: {
-                    labels: labels,
-                    datasets: [
-                        {
-                            label: "Carbon Footprint (grams)",
-                            data: values,
-                            backgroundColor: values.map(value =>
-                                // Adjust color mapping: Red for higher values, Green for lower
-                                `rgba(${Math.min(value * 10, 255)}, ${255 - Math.min(value * 10, 255)}, 0, 0.7)`
-                            ),
-                            borderColor: "rgba(255, 99, 132, 1)",
-                            borderWidth: 1,
-                        }
-                    ]
-                },
-                options: {
-                    plugins: {
-                        datalabels: {
-                            color: "#000",
-                            align: "end",
-                            anchor: "end",
-                            formatter: value => `${value.toFixed(2)} J`
-                        }
-                    },
-                    responsive: true,
-                    scales: {
-                        x: {
-                            title: {
-                                display: true,
-                                text: "Month"
-                            }
-                        },
-                        y: {
-                            beginAtZero: true,
-                            title: {
-                                display: true,
-                                text: "Carbon Footprint"
-                            }
-                        }
-                    },
-                    interaction: {
-                        mode: "index",
-                        intersect: false
-                    },
-                    maintainAspectRatio: true
+    // Destroy previous chart if it exists
+    if (heatmapChart) {
+        heatmapChart.destroy();
+    }
+
+    // Create new chart
+    heatmapChart = new Chart(ctx, {
+        type: "bar",
+        data: {
+            labels: labels,
+            datasets: [
+                {
+                    label: "Carbon Footprint (grams)",
+                    data: values,
+                    backgroundColor: values.map(value =>
+                        // Adjust color mapping: Red for higher values, Green for lower
+                        `rgba(${Math.min(value * 10, 255)}, ${255 - Math.min(value * 10, 255)}, 0, 0.7)`
+                    ),
+                    borderColor: "rgba(255, 99, 132, 1)",
+                    borderWidth: 1,
                 }
-            });
+            ]
+        },
+        options: {
+            plugins: {
+                datalabels: {
+                    color: "#000",
+                    align: "end",
+                    anchor: "end",
+                    formatter: value => `${value.toFixed(2)} J`
+                }
+            },
+            responsive: true,
+            scales: {
+                x: {
+                    title: {
+                        display: true,
+                        text: xAxisTitle
+                    }
+                },
+                y: {
+                    beginAtZero: true,
+                    title: {
+                        display: true,
+                        text: "Carbon Footprint"
+                    }
+                }
+            },
+            interaction: {
+                mode: "index",
+                intersect: false
+            },
+            maintainAspectRatio: true
         }
+    });
+}
+
 
 
         // Handle plot button click
@@ -197,8 +224,13 @@
                 const heatmapData = await fetchHeatmapData(selectedFile, selectedUsecase);
                 generateHeatmap(heatmapData);
             } else {
-                alert("Please select a file and a valid date range.");
+                alert("Please select a file and a valid use case.");
             }
+        });
+
+        fileSelect.addEventListener("change", () => {
+            const selectedFile = fileSelect.value;
+            fetchUsecases(selectedFile);
         });
 
         // Initialize   

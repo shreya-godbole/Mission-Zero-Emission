@@ -189,6 +189,7 @@ def generate_heatmap_timeline():
     # SQL query to fetch data
     query = '''
         SELECT 
+            strftime('%d', SUBSTR(date, 7, 4) || '-' || SUBSTR(date, 4, 2) || '-' || SUBSTR(date, 1, 2)) AS day,
             strftime('%m', SUBSTR(date, 7, 4) || '-' || SUBSTR(date, 4, 2) || '-' || SUBSTR(date, 1, 2)) AS month,
             strftime('%Y', SUBSTR(date, 7, 4) || '-' || SUBSTR(date, 4, 2) || '-' || SUBSTR(date, 1, 2)) AS year,
             SUM(carbonFootprint) AS carbon_footprint
@@ -199,9 +200,9 @@ def generate_heatmap_timeline():
         AND
             use_case = ?
         GROUP BY 
-            year, month
+            year, month, day
         ORDER BY 
-            year, month;
+            year, month, day;
     '''
     
     print(f"Executing query: {query} with params ({selected_file, selected_usecase})")
@@ -212,17 +213,43 @@ def generate_heatmap_timeline():
     # Fetch results
     results = cursor.fetchall()
     
-    # Convert the fetched data into a list of dictionaries
-    data = [{'month': row['month'], 'year': row['year'], 'carbon_footprint': row['carbon_footprint']} for row in results]
+   # Convert the fetched data into a list of dictionaries
+    data = [{'day': row['day'], 'month': row['month'], 'year': row['year'], 'carbon_footprint': row['carbon_footprint']} for row in results]
     
-    # Log the fetched data
-    #print(f"Fetched data: {data}")
-    
-    # Check if data exists
     if not data:
         return jsonify({"message": "No data found for the selected file"}), 404
     
-    return jsonify(data)
+    # Analyze the scope of the data (monthly or weekly)
+    unique_months = {row['month'] for row in data}
+    unique_years = {row['year'] for row in data}
+    days_count = len(data)
+    
+    if len(unique_months) == 1 and len(unique_years) == 1:  # Data is for a single month
+        if days_count > 7:  # Group by week
+            data_by_week = {}
+            for row in data:
+                week_number = (int(row['day']) - 1) // 7 + 1
+                key = f"Week {week_number}"
+                if key not in data_by_week:
+                    data_by_week[key] = 0
+                data_by_week[key] += row['carbon_footprint']
+            
+            # Format weekly data for response
+            weekly_data = [{'week': week, 'carbon_footprint': footprint} for week, footprint in data_by_week.items()]
+            return jsonify({'view': 'weekly', 'data': weekly_data})
+        else:  # Return daily data
+            daily_data = [{'day': row['day'], 'carbon_footprint': row['carbon_footprint']} for row in data]
+            return jsonify({'view': 'daily', 'data': daily_data})
+    else:  # Data spans multiple months
+        monthly_data = {}
+        for row in data:
+            key = f"{row['year']}-{row['month']}"
+            if key not in monthly_data:
+                monthly_data[key] = 0
+            monthly_data[key] += row['carbon_footprint']
+        
+        formatted_monthly_data = [{'month': month, 'carbon_footprint': footprint} for month, footprint in monthly_data.items()]
+        return jsonify({'view': 'monthly', 'data': formatted_monthly_data})
 
 
 

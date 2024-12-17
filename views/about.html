@@ -20,12 +20,9 @@
             <div class="menu-item" onclick="navigateTo('card.html')">
                 <i class="fas fa-chart-line"></i> <span class="menu-text">Options</span>
             </div>
-            <div class="menu-item" onclick="navigateTo('dashboard.html')">
-                <i class="fas fa-file-alt"></i> <span class="menu-text">Dashboard</span>
-            </div>
-            <div class="menu-item" onclick="navigateTo('views/carbon.html')">
-                <i class="fas fa-leaf"></i> <span class="menu-text">Carbon FootPrint</span>
-            </div>  
+            <div class="menu-item" onclick="navigateTo('carbon.html')">
+                <i class="fas fa-leaf"></i> <span class="menu-text">Lifetime Carbon Emission</span>
+            </div>   
             <div class="menu-item" onclick="navigateTo('about.html')">
                 <i class="fas fa-leaf"></i> <span class="menu-text">About</span>
             </div>
@@ -65,53 +62,6 @@
         </div>
 
         </div>
-        <div class="content">       
-            <h1>About</h1>
-            <button class="back-button" onclick="goBack()">Back</button>
-            <p></p>
-            <div class="earth-container">
-                <div id="earth"></div>
-               </div>
-               
-               
-               <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-               <script>
-                const scene = new THREE.Scene();
-                const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-                const renderer = new THREE.WebGLRenderer();
-                renderer.setSize(window.innerWidth, window.innerHeight);
-                document.getElementById('earth').appendChild(renderer.domElement);
-               
-               
-                const geometry = new THREE.SphereGeometry(5, 32, 32);
-                const material = new THREE.MeshBasicMaterial({
-                  map: new THREE.TextureLoader().load('https://w7.pngwing.com/pngs/816/365/png-transparent-earth-globe-3d-computer-graphics-rendering-3d-earth-render-06-texture-blue-globe-thumbnail.png'),
-                });
-                const sphere = new THREE.Mesh(geometry, material);
-                scene.add(sphere);
-                camera.position.z = 10;
-               
-               
-                const animate = function () {
-                  requestAnimationFrame(animate);
-                  sphere.rotation.y += 0.01;
-                  renderer.render(scene, camera);
-                };
-               
-               
-                animate();
-               </script>
-               
-               
-               <style>
-                .earth-container {
-                  position: relative;
-                  width: 100%;
-                  height: 100vh;
-                  background: #000;
-                  overflow: hidden;
-                }
-               </style>
     
     <script>
         function toggleSidebar() {

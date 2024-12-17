@@ -33,17 +33,6 @@ body {
     display: flex;
     height: 100vh;
 }
-/* .sidebar {
-    height: 100vh;
-    width: 250px;
-    background-color: #9e825e;
-    color: #ecf0f1;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 30px 15px;
-    box-shadow: 3px 0 10px rgba(0, 0, 0, 0.1);
-} */
 
 .sidebar img {
     width: 120px;
@@ -139,7 +128,7 @@ button {
     color: white;
     border-radius: 5px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    margin-top: 25px;
+    margin: 5px;
     transition: background-color 0.3s ease, box-shadow 0.3s ease;
 }
 
@@ -229,6 +218,12 @@ button:hover {
 }
 
 #chart-container {
-    width: 400px;
+    width: 600px;
     height: 400px;
+    margin: 10px;
+}
+
+#pieChart {
+    display: block;
+    margin: auto;
 }

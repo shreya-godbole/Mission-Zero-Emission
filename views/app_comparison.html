@@ -6,6 +6,11 @@
     <title>Carbon Footprint Comparison</title>
     <link rel="stylesheet" href="../styles/app_comparison-style.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> <!-- Include chart.js -->
+    
+    <script src="https://cdn.amcharts.com/lib/4/core.js"></script>
+    <script src="https://cdn.amcharts.com/lib/4/charts.js"></script>
+    <script src="https://cdn.amcharts.com/lib/4/themes/animated.js"></script>
+
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
 </head>
 <body>
@@ -21,12 +26,9 @@
             <div class="menu-item" onclick="navigateTo('card.html')">
                 <i class="fas fa-chart-line"></i> <span class="menu-text">Options</span>
             </div>
-            <div class="menu-item" onclick="navigateTo('dashboard.html')">
-                <i class="fas fa-file-alt"></i> <span class="menu-text">Dashboard</span>
-            </div>
             <div class="menu-item" onclick="navigateTo('carbon.html')">
-                <i class="fas fa-leaf"></i> <span class="menu-text">Carbon FootPrint</span>
-            </div>  
+                <i class="fas fa-leaf"></i> <span class="menu-text">Lifetime Carbon Emission</span>
+            </div> 
             <div class="menu-item" onclick="navigateTo('about.html')">
                 <i class="fas fa-leaf"></i> <span class="menu-text">About</span>
             </div>
@@ -55,7 +57,8 @@
             <button id="plotButton">Plot</button>
 
             <div id="chart-container">
-                <canvas id="heatmapChart" width="300" height="200"></canvas>
+                <div id="pieChart" style="width: 600px; height: 400px;"></div>
+                <!-- <canvas id="heatmapChart" width="0" height="0"></canvas> -->
             </div>
         </div>
 
@@ -69,7 +72,7 @@
         const runtimeSelect = document.getElementById("runtime");
         const usecaseSelect = document.getElementById("usecase");
         const plotButton = document.getElementById("plotButton");
-        const ctx = document.getElementById("heatmapChart").getContext("2d");
+        //const ctx = document.getElementById("heatmapChart").getContext("2d");
 
         // Chart instance
         let heatmapChart;
@@ -116,95 +119,89 @@
             }
         }
 
-        function getRandomColor() {
-            const r = Math.floor(Math.random() * 256);
-            const g = Math.floor(Math.random() * 256);
-            const b = Math.floor(Math.random() * 256);
-            return `rgba(${r}, ${g}, ${b}, 0.7)`;
-        }
-        const colors = [
-            "#FF6384", // Red
-            "#36A2EB", // Blue
-            "#FFCE56", // Yellow
-            "#4BC0C0", // Teal
-            "#9966FF", // Purple
-            "#FF9F40", // Orange
-            // Add more colors if needed
-        ];
 
-        // Generate heatmap chart
-        function generateHeatmap(data) {
-            if (!data || data.length === 0 || data.message) { // Also check for API error message
-                alert("No data available or invalid response.");
-                return;
-            }
+const colors = [
+    "#D32F2F", // Crimson
+    "#1976D2", // Cerulean Blue
+    "#FFC107", // Amber
+    "#388E3C", // Forest Green
+    "#7B1FA2", // Deep Purple
+    "#F57C00", // Pumpkin Orange
+    "#0288D1", // Light Blue
+    "#C2185B", // Rose Red
+    "#009688", // Turquoise
+    "#8E24AA", // Violet
+];
 
-            //Extract labels (dates) and values (joules)
-            const labels = data.map(item => item.file);
-            const values = data.map(item => item.carbon_footprint);
+// Generate heatmap chart
+function generateHeatmap(data) {
 
-            console.log("Labels:", labels);
-            console.log("Values:", values);
+    // Extract labels (files) and values (carbon footprint)
+    const labels = data.map(item => item.file);
+    const values = data.map(item => item.carbon_footprint);
 
-            // Destroy previous chart if it exists
-            if (heatmapChart) {
-                heatmapChart.destroy();
-            }
+    console.log("Labels:", labels);
+    console.log("Values:", values);
 
-            // Create new chart
-            heatmapChart = new Chart(ctx, {
-                type: "bar",
-                data: {
-                    labels: labels,
-                    datasets: [
-                        {
-                            label: "Carbon Footprint (grams)",
-                            data: values,
-                            // backgroundColor: values.map(value =>
-                            //     // Adjust color mapping: Red for higher values, Green for lower
-                            //     `rgba(${Math.min(value * 10, 255)}, ${255 - Math.min(value * 10, 255)}, 0, 0.7)`
-                            // ),
-                            //backgroundColor: labels.map(() => getRandomColor()),
-                            backgroundColor: labels.map((_, index) => colors[index % colors.length]),
-                            borderColor: "rgba(255, 99, 132, 1)",
-                            borderWidth: 1,
-                        }
-                    ]
-                },
-                options: {
-                    plugins: {
-                        datalabels: {
-                            color: "#000",
-                            align: "end",
-                            anchor: "end",
-                            formatter: value => `${value.toFixed(2)} J`
-                        }
-                    },
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    // scales: {
-                    //     x: {
-                    //         title: {
-                    //             display: false,
-                    //             text: "Application"
-                    //         }
-                    //     },
-                    //     y: {
-                    //         beginAtZero: true,
-                    //         title: {
-                    //             display: false,
-                    //             text: "Carbon Footprint"
-                    //         }
-                    //     }
-                    // },
-                    interaction: {
-                        mode: "index",
-                        intersect: false
-                    },
-                    maintainAspectRatio: true
-                }
-            });
-        }
+    // Identify the smallest value and its index
+    const minValue = Math.min(...values);
+    const minIndex = values.indexOf(minValue);
+
+    // Generate the 3D pie chart
+    generatePieChart(labels, values, minIndex);
+}
+
+// Generate 3D pie chart
+function generatePieChart(labels, values, minIndex) {
+    var chart = am4core.create("pieChart", am4charts.PieChart3D);
+    am4core.useTheme(am4themes_animated);
+    chart.hiddenState.properties.opacity = 0; // Initial fade-in effect
+
+    // Set chart data
+    const chartData = labels.map((label, index) => ({
+        country: label,       // Label for the slice
+        litres: values[index] // Value for the slice (carbon footprint)
+    }));
+
+    chart.data = chartData; // Set the data to the chart
+
+    // Create the 3D Pie Series
+    var series = chart.series.push(new am4charts.PieSeries3D());
+    series.dataFields.value = "litres"; // Value field
+    series.dataFields.category = "country"; // Category field (slice labels)
+
+    // Add a legend
+    chart.legend = new am4charts.Legend();
+
+    // Customize appearance (Optional)
+    series.slices.template.tooltipText = "{category}: {value} g"; // Tooltip with category and value
+
+    // Optional: Apply specific color for the smallest slice (for 3D effect or emphasis)
+    series.slices.template.fill = am4core.color("#5e5e61"); // Set default color, or use dynamic logic for min slice
+
+    // Optional: Set color for each slice (can be dynamic based on the 'minIndex' if needed)
+    series.slices.template.adapter.add("fill", function(fill, target) {
+        return colors[labels.indexOf(target.dataItem.category) % colors.length];
+    });
+
+    series.labels.template.fontSize = 14;
+    series.labels.template.radius = am4core.percent(-40); // Move labels inside
+    series.labels.template.fill = am4core.color("#000"); // Change label color for visibility
+
+    // Optional: Additional customization for 3D effects
+    series.depth = 20;  // Set depth of the 3D slices
+    
+    series.slices.template.adapter.add("shadowColor", function (shadowColor, target) {
+        return target.fill; // Set shadow color to the slice fill color
+    });
+
+    series.slices.template.filters.push(new am4core.DropShadowFilter());
+    var shadowFilter = series.slices.template.filters.getIndex(0);
+    shadowFilter.dx = 5; // Horizontal shadow offset
+    shadowFilter.dy = 5; // Vertical shadow offset
+    shadowFilter.blur = 8; // Blur effect
+}
+
 
 
         // Handle plot button click
