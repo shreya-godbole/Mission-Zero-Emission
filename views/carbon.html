@@ -7,7 +7,6 @@
 </head>
 <body>
     <div class="container">
-        <!-- Sidebar -->
         <div class="sidebar" id="sidebar">
             <button class="toggle-btn" onclick="toggleSidebar()">
                 <i class="fas fa-bars"></i>
@@ -20,34 +19,29 @@
             </div>
             <div class="menu-item" onclick="navigateTo('carbon.html')">
                 <i class="fas fa-leaf"></i> <span class="menu-text">Lifetime Carbon Emission</span>
-            </div>  
+            </div>
             <div class="menu-item" onclick="navigateTo('about.html')">
                 <i class="fas fa-leaf"></i> <span class="menu-text">About</span>
-            </div>   
-        </div>
-
-        <!-- Main Content -->
-        <div class="content">
-            <h1>Carbon Footprint Calculator</h1>
-
-            <!-- File Selection -->
-            <div class="input-group">
-                <label for="fileSelect">Select File:</label>
-                <select id="fileSelect">
-                    <option value="" disabled selected>Select a file</option>
-                </select>
             </div>
-
+        </div>
+        <div class="content">
+            <h1>Lifetime Carbon Emission</h1>
             <div class="select-container">
-                <div class = "usecase_select"> 
-                    <label for="usecase">Select Use Case</label>
+                <div class="input-group">
+                    <label for="fileSelect">Select File:</label>
+                    <select id="fileSelect">
+                        <option value="" disabled selected>Select a file</option>
+                    </select>
+                </div>
+
+                <div class="input-group">
+                    <label for="usecase">Select Use Case:</label>
                     <select id="usecase" name="usecase">
                         <option value="" disabled selected>Usecase</option>
                     </select>
                 </div>
             </div>
 
-            <!-- New Input Parameters -->
             <h2>Calculate Total Carbon Footprint</h2>
             <div class="input-group">
                 <label for="frequency">Frequency (times per week):</label>
@@ -57,15 +51,14 @@
                 <label for="weeks">Duration (Years):</label>
                 <input type="number" id="weeks" min="1" placeholder="e.g., 4" required />
             </div>
+
             <button id="calculateTotalCF">Calculate Total Carbon Footprint</button>
 
-            <!-- Display Total Carbon Footprint Result -->
             <div id="totalCFResult"></div>
             <div id="totaltreestoplant"></div>
         </div>
     </div>
 
-    <!-- Sidebar Toggle Script -->
     <script>
         function toggleSidebar() {
             const sidebar = document.getElementById('sidebar');
@@ -75,20 +68,14 @@
         function navigateTo(path) {
             window.location.href = path;
         }
-    </script>
-
-    <!-- Scripts -->
-    <script>
-        const backendURL = "http://127.0.0.1:5000"; 
+        const backendURL = "http://127.0.0.1:5000";
         const fileSelect = document.getElementById("fileSelect");
         const usecaseSelect = document.getElementById("usecase");
         let selectedFilename = null;
         let selectedUseCase = null;
+
         async function fetchUsecases(selectedFilename) {
-            if (!selectedFilename) {
-                console.error("No file selected to fetch use cases.");
-                return;
-            }
+            if (!selectedFilename) return;
             try {
                 const response = await fetch(`${backendURL}/fetch-usecases-file-specific?file=${encodeURIComponent(selectedFilename)}`);
                 const usecases = await response.json();
@@ -102,7 +89,8 @@
             } catch (error) {
                 console.error("Error fetching usecases:", error);
             }
-        }   
+        }
+
         async function fetchFiles() {
             try {
                 const response = await fetch(`${backendURL}/fetch-files`);
@@ -114,13 +102,9 @@
                     fileSelect.appendChild(option);
                 });
                 if (files.length > 0) {
-                    selectedFilename = files[0]; 
-                    fileSelect.value = selectedFilename; 
-                    console.log(`Default selected file: ${selectedFilename}`);
+                    selectedFilename = files[0];
+                    fileSelect.value = selectedFilename;
                     fetchUsecases(selectedFilename);
-                    selectedUseCase = usecaseSelect.value;
-                } else {
-                    console.log("No file selected");
                 }
             } catch (error) {
                 console.error("Error fetching files:", error);
@@ -128,39 +112,33 @@
         }
 
         fileSelect.addEventListener("change", () => {
-            selectedFilename = fileSelect.value; 
-            console.log(`Selected file: ${selectedFilename}`);
+            selectedFilename = fileSelect.value;
             fetchUsecases(selectedFilename);
         });
 
         usecaseSelect.addEventListener("change", () => {
-            selectedUseCase = usecaseSelect.value; 
-            console.log(`Selected use case: ${selectedUseCase}`);
+            selectedUseCase = usecaseSelect.value;
         });
 
-        fetchFiles();
-      
         document.getElementById("calculateTotalCF").addEventListener("click", () => {
             const frequency = parseInt(document.getElementById("frequency").value, 10);
-            const weeks = 52*parseInt(document.getElementById("weeks").value, 10);
-
-            if (isNaN(frequency) || isNaN(weeks) || frequency <= 0 || weeks <= 0) {
-                alert("Please enter valid numbers for frequency and weeks.");
+            const weeks = 52 * parseInt(document.getElementById("weeks").value, 10);
+            if (isNaN(frequency) || isNaN(weeks)) {
+                alert("Please enter valid numbers.");
                 return;
             }
             window.electronAPI.calculateTotalCF({ frequency, weeks, selectedFilename, selectedUseCase });
-         });
-    </script>
-    <script>
-        window.electronAPI.onTotalCFResult((data) => {
-    if (data.success) {
-        totalCFResult.textContent = `Carbon Footprint: ${data.output} grams`;
-        totaltreestoplant.textContent = `Total trees needed to offeset ${data.output} is ${data.trees}`;
+        });
 
-    } else {
-        totalCFResult.textContent = `Error: ${data.output}`;
-    }
-    });
+        window.electronAPI.onTotalCFResult((data) => {
+            document.getElementById("totalCFResult").textContent = data.success 
+                ? `Carbon Footprint: ${data.output} grams`
+                : `Error: ${data.output}`;
+            document.getElementById("totaltreestoplant").textContent = data.success 
+                ? `Total trees needed to offset: ${data.trees}` 
+                : "";
+        });
+        fetchFiles();
     </script>
 </body>
 </html>
