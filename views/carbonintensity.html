@@ -14,8 +14,7 @@
             <button class="toggle-btn" onclick="toggleSidebar()">
                 <i class="fas fa-bars"></i>
             </button>
-            <img src="../styles/images/MZE_logo.png" alt="Company Logo" class="logo">
-            <div class="menu-item" onclick="navigateTo('./views/index.html')">
+            <div class="menu-item" onclick="navigateTo('../index.html')">
                 <i class="fas fa-bolt"></i> <span class="menu-text">Energy Consumption</span>
             </div>
             <div class="menu-item" onclick="navigateTo('card.html')">
@@ -31,10 +30,12 @@
         <div class="content">
             <button class="back-button" onclick="goBack()">Back</button>
             <h1>Carbon Footprint by Zone</h1>
-            <label for="fileDropdown">Select File:</label>
-            <select id="fileDropdown">
-                <option value="" disabled selected>Select a file</option>
-            </select>
+            <div class="file-select">
+                <label for="fileDropdown">Select File:</label>
+                <select id="fileDropdown">
+                    <option value="" disabled selected>Select a file</option>
+                </select>
+            </div>
 
             <button id="plotZoneButton">Plot Carbon Footprint</button>
             <canvas id="zoneChart" width="400" height="150"></canvas>

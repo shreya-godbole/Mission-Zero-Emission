@@ -117,7 +117,7 @@ h2 {
 .select-container {
     display: flex;
     gap: 15px; 
-    margin-bottom: 15px; 
+    margin: 15px; 
 }
 
 .input-group {
@@ -140,6 +140,21 @@ h2 {
     border-radius: 4px;
 }
 
+.file-select label {
+    margin: 5px;
+    font-weight: bold;
+    font-size: 14px;
+    color: #4a4a4a;
+}
+
+.file-select select, .file-select input {
+    margin: 5px;
+    padding: 8px;
+    font-size: 16px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
 button {
     padding: 10px 20px;
     font-size: 16px;
@@ -153,6 +168,19 @@ button {
     transition: background-color 0.3s ease, box-shadow 0.3s ease;
 }
 
+#plotZoneButton{
+    padding: 10px 20px;
+    font-size: 16px;
+    cursor: pointer;
+    border: none;
+    background-color: #77815C;
+    color: white;
+    border-radius: 5px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    margin-top: 15px;
+    transition: background-color 0.3s ease, box-shadow 0.3s ease;
+}
+
 button:hover {
     background-color: #9e825e;
     box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
@@ -163,4 +191,31 @@ button:hover {
     font-size: 16px;
     color: #333;
     font-weight: bold;
+}
+
+.back-button {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    padding: 8px 16px;
+    background: #77815C;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: 0.3s;
+}
+
+.back-button:hover {
+    background: #9e825e;
+    transform: scale(1.05);
+}
+
+.back-button:active {
+    background: #77815C;
+}
+
+#zoneChart{
+    margin-top: 15px;
 }

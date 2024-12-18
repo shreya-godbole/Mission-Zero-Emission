@@ -29,27 +29,30 @@
             </div>
         </div>
         <div class="content">
-            <h1>Energy Consumption Reports</h1>
             <button class="back-button" onclick="goBack()">Back</button>
+            <h1>Energy Consumption Reports</h1>
             <!-- File selection -->
-            <label for="fileSelect">Select File:</label>
+             <div class="file-select">
+                <label for="fileSelect">Select File:</label>
             <select id="fileSelect">
                 <option value="" disabled selected>Select a file</option>
             </select>
+             </div>
 
-            <!-- Date range selection -->
-            <label for="startDate">Start Date:</label>
-            <input type="date" id="startDate">
-
-            <label for="endDate">End Date:</label>
-            <input type="date" id="endDate">
-
-            <br><br>
+            <div class="select-container">
+                <div class="input-group">
+                    <label for="startDate">Start Date:</label>
+                    <input type="date" id="startDate">
+                </div>
+               
+                <div class="input-group">
+                    <label for="endDate">End Date:</label>
+                    <input type="date" id="endDate">
+                </div>
+            </div>
 
             <!-- Plot button -->
             <button id="plotButton">Plot</button>
-
-            <br><br>
 
             <!-- Chart container -->
             <canvas id="heatmapChart" width="400" height="150"></canvas>
