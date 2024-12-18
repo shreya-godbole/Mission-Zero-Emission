@@ -68,12 +68,22 @@ function populateDropdown() {
                 ([zoneId, zone]) => zone.countryName === "India"
             );
 
+            const allowedZones = [
+                "Northern India",
+                "North Eastern India",
+                "Western India",
+                "Eastern India",
+                "Southern India"
+            ];
+            
             // Populate the dropdown
             indiaZones.forEach(([zoneId, zone]) => {
-                const option = document.createElement("option");
-                option.value = zoneId;
-                option.textContent = zone.zoneName;
-                dropdown.appendChild(option);
+                if (allowedZones.includes(zone.zoneName)) { 
+                    const option = document.createElement("option");
+                    option.value = zoneId;
+                    option.textContent = zone.zoneName;
+                    dropdown.appendChild(option);
+                }
             });
         })
         .catch(error => {
