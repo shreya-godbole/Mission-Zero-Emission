@@ -7,8 +7,13 @@ const getCarbonIntensity = require('./scripts/carbonIntensity');
 const { app, BrowserWindow, ipcMain, dialog } = require('electron');
 const getCarbonFootprint = require('./scripts/carbonFootprint');
 const { Console } = require('console');
-const axios = require('axios');  // Import axios for making HTTP requests
+const axios = require('axios');  
 const backendURL = "http://127.0.0.1:5000"; // Backend URL
+const { startFlaskServer } = require('./start-flask');
+
+let mainWindow;
+let flaskProcess;
+
 
 // Load the configuration from the config.ini file
 const config = ini.parse(fs.readFileSync(path.join(__dirname, 'config.ini'), 'utf-8'));
@@ -40,6 +45,8 @@ let carbonFootprintOutput;
 
 
 app.on('ready', function() {
+    flaskProcess = startFlaskServer();
+
     let MainWindow = new BrowserWindow({
         resizable: true,
         height: 800,
@@ -320,4 +327,16 @@ app.on('ready', function() {
             }); 
         }
     });
+});
+
+app.on('window-all-closed', () => {
+    if (process.platform !== 'darwin') {
+        app.quit();
+    }
+});
+
+app.on('will-quit', () => {
+    if (flaskProcess) {
+        flaskProcess.kill(); // Kill the Flask server when the Electron app exits
+    }
 });
