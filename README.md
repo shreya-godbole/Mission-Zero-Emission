@@ -56,9 +56,7 @@
 
 ## Installation & Setup
 
-1. Clone this repository:
-   git clone https://github.com/your-username/mission-zero-emission.git
-   cd mission-zero-emission
+1. Clone this repository
 
 2. Install dependencies:
    npm install
